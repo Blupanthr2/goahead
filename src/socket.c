@@ -12,7 +12,7 @@
 
 PUBLIC WebsSocket **socketList;             /* List of open sockets */
 PUBLIC int        socketMax;                /* Maximum size of socket */
-PUBLIC Socket     socketHighestFd = -1;     /* Highest socket fd opened */
+PUBLIC Socket     socketHighestFd = (Socket) -1; /* Highest socket fd opened */
 PUBLIC int        socketOpenCount = 0;      /* Number of task using sockets */
 
 static int hasIPv6;                         /* System supports IPv6 */
@@ -47,7 +47,7 @@ PUBLIC int socketOpen(void)
 #endif
     socketList = NULL;
     socketMax = 0;
-    socketHighestFd = -1;
+    socketHighestFd = (Socket) -1;
     if ((fd = socket(AF_INET6, SOCK_STREAM, 0)) != -1) {
         hasIPv6 = 1;
         closesocket(fd);
@@ -959,7 +959,7 @@ PUBLIC void socketFree(int sid)
     /*
         Calculate the new highest socket number
      */
-    socketHighestFd = -1;
+    socketHighestFd = (Socket) -1;
     for (i = 0; i < socketMax; i++) {
         if ((sp = socketList[i]) == NULL) {
             continue;
@@ -1028,7 +1028,7 @@ PUBLIC Socket socketGetHandle(int sid)
     WebsSocket *sp;
 
     if ((sp = socketPtr(sid)) == NULL) {
-        return -1;
+        return (Socket) -1;
     }
     return sp->sock;
 }

@@ -895,6 +895,7 @@ PUBLIC int websGetRandomBytes(char *buf, ssize length, bool block)
         sofar += rc;
     } while (length > 0);
     close(fd);
+    return 0;
 #elif ME_WIN_LIKE
     HCRYPTPROV prov;
     int        rc;
@@ -903,7 +904,7 @@ PUBLIC int websGetRandomBytes(char *buf, ssize length, bool block)
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return -1;
     }
-    if (!CryptGenRandom(prov, (wsize) length, buf)) {
+    if (!CryptGenRandom(prov, (wsize) length, (BYTE*) buf)) {
         rc = -1;
     }
     CryptReleaseContext(prov, 0);
@@ -917,7 +918,6 @@ PUBLIC int websGetRandomBytes(char *buf, ssize length, bool block)
     #error \
     "websGetRandomBytes must be implemented for your platform using a cryptographically secure random number generator."
 #endif
-    return 0;
 }
 
 
@@ -929,7 +929,12 @@ PUBLIC char *websCryptPassword(cchar *password, cchar *salt, int rounds)
     ssize        len, limit;
     int          i, j;
 
-    if (slen(password) > WEBS_MAX_PASSWORD) {
+    /*
+        Defense-in-depth: callers are expected to enforce the plaintext-password limit
+        (WEBS_MAX_PASSWORD). This bound accommodates "username:realm:password" inputs
+        produced by auth.c and gopass without penalising reasonable username/realm lengths.
+     */
+    if (slen(password) > WEBS_MAX_PASSWORD_BUFFER) {
         return 0;
     }
     key = sfmt("%s:%s", salt, password);
@@ -985,7 +990,7 @@ PUBLIC char *websMakePassword(cchar *password, int saltLength, int rounds)
 {
     char *salt;
 
-    if (slen(password) > WEBS_MAX_PASSWORD) {
+    if (slen(password) > WEBS_MAX_PASSWORD_BUFFER) {
         return 0;
     }
     if (saltLength <= 0) {
@@ -1007,7 +1012,7 @@ PUBLIC bool websCheckPassword(cchar *plainTextPassword, cchar *passwordHash)
     if (!passwordHash || !plainTextPassword) {
         return 0;
     }
-    if (slen(plainTextPassword) > WEBS_MAX_PASSWORD) {
+    if (slen(plainTextPassword) > WEBS_MAX_PASSWORD_BUFFER) {
         return 0;
     }
     ph = sclone(passwordHash);

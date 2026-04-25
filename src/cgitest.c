@@ -268,7 +268,7 @@ int main(int argc, char **argv, char **envp)
     }
     printf("\r\n");
 
-    if ((outputLines + outputArgs + outputEnv + outputQuery + outputPost + outputLocation + responseStatus) == 0) {
+    if ((outputLines + outputArgs + outputEnv + outputQuery + outputPost + responseStatus) == 0 && outputLocation == NULL) {
         outputArgs++;
         outputEnv++;
         outputQuery++;
@@ -440,7 +440,7 @@ static void printPost(char *buf, size_t len)
         if (len < (50 * 1000)) {
             printf("<H2>Post Data %d bytes found (data below)</H2>\r\n", (int) len);
             fflush(stdout);
-            if (write(1, buf, (int) len) != len) {}
+            if ((size_t) write(1, buf, (int) len) != len) {}
         } else {
             printf("<H2>Post Data %d bytes found</H2>\r\n", (int) len);
         }

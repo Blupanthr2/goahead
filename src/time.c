@@ -39,7 +39,7 @@ static TimeToken days[] = {
     { "thu",  4, TOKEN_DAY },
     { "fri",  5, TOKEN_DAY },
     { "sat",  6, TOKEN_DAY },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 static TimeToken fullDays[] = {
@@ -50,7 +50,7 @@ static TimeToken fullDays[] = {
     { "thursday",   4, TOKEN_DAY },
     { "friday",     5, TOKEN_DAY },
     { "saturday",   6, TOKEN_DAY },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 /*
@@ -69,7 +69,7 @@ static TimeToken months[] = {
     { "oct", 10, TOKEN_MONTH },
     { "nov", 11, TOKEN_MONTH },
     { "dec", 12, TOKEN_MONTH },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 static TimeToken fullMonths[] = {
@@ -85,13 +85,13 @@ static TimeToken fullMonths[] = {
     { "october",   10, TOKEN_MONTH },
     { "november",  11, TOKEN_MONTH },
     { "december",  12, TOKEN_MONTH },
-    { 0, 0 }
+    { 0, 0, 0 }
 };
 
 static TimeToken ampm[] = {
     { "am", 0, TOKEN_OFFSET },
     { "pm", (12 * 3600), TOKEN_OFFSET },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 
@@ -107,7 +107,7 @@ static TimeToken zones[] = {
     { "mst",  -420, TOKEN_ZONE },
     { "pdt",  -420, TOKEN_ZONE },
     { "pst",  -480, TOKEN_ZONE },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 
@@ -116,7 +116,7 @@ static TimeToken offsets[] = {
     { "yesterday",  -86400, TOKEN_OFFSET },
     { "next week",  (86400 * 7), TOKEN_OFFSET },
     { "last week", -(86400 * 7), TOKEN_OFFSET },
-    { 0, 0 },
+    { 0, 0, 0 },
 };
 
 static int timeSep = ':';

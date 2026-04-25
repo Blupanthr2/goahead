@@ -112,6 +112,7 @@ PUBLIC bool websProcessUploadData(Webs *wp)
     bool  canProceed;
 
     line = 0;
+    nbytes = 0;
     canProceed = 1;
     while (canProceed && !wp->finalized && wp->uploadState != UPLOAD_CONTENT_END) {
         if (wp->uploadState == UPLOAD_BOUNDARY || wp->uploadState == UPLOAD_CONTENT_HEADER) {

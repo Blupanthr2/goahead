@@ -33,7 +33,7 @@ PUBLIC void websSetMemNotifier(WebsMemNotifier cback)
 
 static void defaultMemNotifier(ssize size)
 {
-    fprintf(stderr, "Cannot allocate required block of %ld bytes, terminating.", size);
+    fprintf(stderr, "Cannot allocate required block of %lld bytes, terminating.", (long long) size);
     abort();
 }
 

@@ -379,6 +379,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
     int    state;
     char   c, *safe;
 
+    memset(&fmt, 0, sizeof(fmt));
     if (spec == 0) {
         spec = "";
     }
@@ -2426,7 +2427,7 @@ PUBLIC ssize scopy(char *dest, ssize destMax, cchar *src)
 
     assert(src);
     assert(dest);
-    assert(0 < dest && destMax < MAXINT);
+    assert(destMax > 0 && destMax < MAXINT);
 
     len = slen(src);
     if (destMax <= len) {

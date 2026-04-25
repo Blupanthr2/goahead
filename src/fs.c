@@ -151,18 +151,24 @@ PUBLIC char *websReadWholeFile(cchar *path)
 {
     WebsFileInfo sbuf;
     char         *buf;
+    ssize        nbytes;
     int          fd;
 
     if (websStatFile(path, &sbuf) < 0) {
         return 0;
     }
     buf = walloc(sbuf.size + 1);
-    if ((fd = websOpenFile(path, O_RDONLY, 0)) < 0) {
+    /*
+        O_BINARY prevents Windows text-mode CRLF->LF translation, which shrinks the read below sbuf.size
+        and would otherwise leave uninitialized heap between the data and the NUL terminator. The flag is
+        a no-op on Unix (defined to 0 in osdep.h).
+     */
+    if ((fd = websOpenFile(path, O_RDONLY | O_BINARY, 0)) < 0) {
         wfree(buf);
         return 0;
     }
-    websReadFile(fd, buf, sbuf.size);
-    buf[sbuf.size] = '\0';
+    nbytes = websReadFile(fd, buf, sbuf.size);
+    buf[nbytes > 0 ? nbytes : 0] = '\0';
     websCloseFile(fd);
     return buf;
 }
