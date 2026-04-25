@@ -1,0 +1,366 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1588C1E60074E7D8485AB026 /* crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 19AA26AEBDFCC460D0350CEE /* crypt.c */; };
+		187EC00A48108EFC231DCE4A /* openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = B6F7FE9259E62544E90C04D2 /* openssl.c */; };
+		1F2B10580A17364A51FCFE98 /* alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 59894100FDDBDEB210142740 /* alloc.c */; };
+		28E9E53813D60B2A5BBBD378 /* osdep.c in Sources */ = {isa = PBXBuildFile; fileRef = 154997E0B99C3592CBD47E20 /* osdep.c */; };
+		2F71421A5F03110C3A10505A /* options.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A9097A22D7EBE54BCA49DE2 /* options.c */; };
+		57B1417CC93C59EE783D7FBC /* js.c in Sources */ = {isa = PBXBuildFile; fileRef = ECF68AE499594B1657E1C124 /* js.c */; };
+		64DFF4DEBB6D5F5093E6731E /* action.c in Sources */ = {isa = PBXBuildFile; fileRef = 063E352609AF07588B1BAB66 /* action.c */; };
+		7AF200647BA4FD56EF86CEA4 /* jst.c in Sources */ = {isa = PBXBuildFile; fileRef = 7B84904CCB9824FE4E16568C /* jst.c */; };
+		7D8A341E7E3D3110F21F025E /* rom.c in Sources */ = {isa = PBXBuildFile; fileRef = 235E9B6673723018F5F061A6 /* rom.c */; };
+		81B868E27B1E6A546EB9C722 /* http.c in Sources */ = {isa = PBXBuildFile; fileRef = 43F894EAE7441E1C0214EB2A /* http.c */; };
+		8CCCD14CE35A3BBEBBD34F8C /* upload.c in Sources */ = {isa = PBXBuildFile; fileRef = DF6229B4E2D2FBE6643F9FF4 /* upload.c */; };
+		90F43A94E781A506BFFAB8D4 /* socket.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E71027C11E1D4AE934E78BC /* socket.c */; };
+		A0DBF1C69A41F3388DDD5006 /* auth.c in Sources */ = {isa = PBXBuildFile; fileRef = B952398E5C9DC2C0776E8FCE /* auth.c */; };
+		AD1CD458DCAEA34AB7BBE298 /* mbedtls.c in Sources */ = {isa = PBXBuildFile; fileRef = 92B9FF0035A825B2C4CE0540 /* mbedtls.c */; };
+		C6B8B928C76BB61A3B4D8768 /* cgi.c in Sources */ = {isa = PBXBuildFile; fileRef = FF2CBAD04F404F82D1BE8110 /* cgi.c */; };
+		CA1EA8A0C384AA12B72006E0 /* time.c in Sources */ = {isa = PBXBuildFile; fileRef = D50D3BC87858C4FA93299208 /* time.c */; };
+		DC48EBA2D5AEED14C94A49E2 /* file.c in Sources */ = {isa = PBXBuildFile; fileRef = 97FCCBAA3B4854DC561921EA /* file.c */; };
+		ED5DF1CA1CEFC0BCF7FD000A /* runtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C563452BF445B044E6A3A92 /* runtime.c */; };
+		F648A1F467D3BA6616D4E034 /* fs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0B1A9FDCB77D600E7605D61C /* fs.c */; };
+		F6E7B9A0E1D3DF9229B9A7E0 /* route.c in Sources */ = {isa = PBXBuildFile; fileRef = 9ED761C84329FF7A55624808 /* route.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		063E352609AF07588B1BAB66 /* action.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = action.c; path = ../../src/action.c; sourceTree = "<group>"; };
+		0B1A9FDCB77D600E7605D61C /* fs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = fs.c; path = ../../src/fs.c; sourceTree = "<group>"; };
+		0E71027C11E1D4AE934E78BC /* socket.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = socket.c; path = ../../src/socket.c; sourceTree = "<group>"; };
+		154997E0B99C3592CBD47E20 /* osdep.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = osdep.c; path = ../../src/osdep.c; sourceTree = "<group>"; };
+		19AA26AEBDFCC460D0350CEE /* crypt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = crypt.c; path = ../../src/crypt.c; sourceTree = "<group>"; };
+		1C563452BF445B044E6A3A92 /* runtime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = runtime.c; path = ../../src/runtime.c; sourceTree = "<group>"; };
+		235E9B6673723018F5F061A6 /* rom.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = rom.c; path = ../../src/rom.c; sourceTree = "<group>"; };
+		43F894EAE7441E1C0214EB2A /* http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = http.c; path = ../../src/http.c; sourceTree = "<group>"; };
+		59894100FDDBDEB210142740 /* alloc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = alloc.c; path = ../../src/alloc.c; sourceTree = "<group>"; };
+		7B84904CCB9824FE4E16568C /* jst.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = jst.c; path = ../../src/jst.c; sourceTree = "<group>"; };
+		8A9097A22D7EBE54BCA49DE2 /* options.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = options.c; path = ../../src/options.c; sourceTree = "<group>"; };
+		92B9FF0035A825B2C4CE0540 /* mbedtls.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = mbedtls.c; path = ../../src/mbedtls.c; sourceTree = "<group>"; };
+		97FCCBAA3B4854DC561921EA /* file.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = file.c; path = ../../src/file.c; sourceTree = "<group>"; };
+		9ED761C84329FF7A55624808 /* route.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = route.c; path = ../../src/route.c; sourceTree = "<group>"; };
+		A43C62EB8F2888DDD70E512B /* libgoahead.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = libgoahead.dylib; path = libgoahead.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6F7FE9259E62544E90C04D2 /* openssl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = openssl.c; path = ../../src/openssl.c; sourceTree = "<group>"; };
+		B952398E5C9DC2C0776E8FCE /* auth.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = auth.c; path = ../../src/auth.c; sourceTree = "<group>"; };
+		D50D3BC87858C4FA93299208 /* time.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = time.c; path = ../../src/time.c; sourceTree = "<group>"; };
+		DF6229B4E2D2FBE6643F9FF4 /* upload.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = upload.c; path = ../../src/upload.c; sourceTree = "<group>"; };
+		ECF68AE499594B1657E1C124 /* js.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = js.c; path = ../../src/js.c; sourceTree = "<group>"; };
+		FF2CBAD04F404F82D1BE8110 /* cgi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = cgi.c; path = ../../src/cgi.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B6939ADBB74697CD2B28691B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7FB10E0779170F796CB26C47 /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXGroup section */
+		A6C936B49B3FADE6EA134CF4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A43C62EB8F2888DDD70E512B /* libgoahead.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D2344C0D3C46CDFFD571BA4D /* goahead-lib */ = {
+			isa = PBXGroup;
+			children = (
+				063E352609AF07588B1BAB66 /* action.c */,
+				59894100FDDBDEB210142740 /* alloc.c */,
+				B952398E5C9DC2C0776E8FCE /* auth.c */,
+				FF2CBAD04F404F82D1BE8110 /* cgi.c */,
+				19AA26AEBDFCC460D0350CEE /* crypt.c */,
+				97FCCBAA3B4854DC561921EA /* file.c */,
+				0B1A9FDCB77D600E7605D61C /* fs.c */,
+				43F894EAE7441E1C0214EB2A /* http.c */,
+				ECF68AE499594B1657E1C124 /* js.c */,
+				7B84904CCB9824FE4E16568C /* jst.c */,
+				92B9FF0035A825B2C4CE0540 /* mbedtls.c */,
+				B6F7FE9259E62544E90C04D2 /* openssl.c */,
+				8A9097A22D7EBE54BCA49DE2 /* options.c */,
+				154997E0B99C3592CBD47E20 /* osdep.c */,
+				235E9B6673723018F5F061A6 /* rom.c */,
+				9ED761C84329FF7A55624808 /* route.c */,
+				1C563452BF445B044E6A3A92 /* runtime.c */,
+				0E71027C11E1D4AE934E78BC /* socket.c */,
+				D50D3BC87858C4FA93299208 /* time.c */,
+				DF6229B4E2D2FBE6643F9FF4 /* upload.c */,
+				A6C936B49B3FADE6EA134CF4 /* Products */,
+			);
+			name = "goahead-lib";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A23E0971C86439232F6B2FB1 /* goahead-lib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4CEE33AA581E02C1963B17A /* Build configuration list for PBXNativeTarget "goahead-lib" */;
+			buildPhases = (
+				267B1B7B272E186D9B0FE9BB /* Resources */,
+				902834D290DB31C404BD0312 /* Sources */,
+				B6939ADBB74697CD2B28691B /* Frameworks */,
+				7FB10E0779170F796CB26C47 /* Embed Libraries */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "goahead-lib";
+			productName = "goahead-lib";
+			productReference = A43C62EB8F2888DDD70E512B /* libgoahead.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "goahead-lib" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = D2344C0D3C46CDFFD571BA4D /* goahead-lib */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A23E0971C86439232F6B2FB1 /* libgoahead.dylib */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		267B1B7B272E186D9B0FE9BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		902834D290DB31C404BD0312 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				64DFF4DEBB6D5F5093E6731E /* action.c in Sources */,
+				1F2B10580A17364A51FCFE98 /* alloc.c in Sources */,
+				A0DBF1C69A41F3388DDD5006 /* auth.c in Sources */,
+				C6B8B928C76BB61A3B4D8768 /* cgi.c in Sources */,
+				1588C1E60074E7D8485AB026 /* crypt.c in Sources */,
+				DC48EBA2D5AEED14C94A49E2 /* file.c in Sources */,
+				F648A1F467D3BA6616D4E034 /* fs.c in Sources */,
+				81B868E27B1E6A546EB9C722 /* http.c in Sources */,
+				57B1417CC93C59EE783D7FBC /* js.c in Sources */,
+				7AF200647BA4FD56EF86CEA4 /* jst.c in Sources */,
+				AD1CD458DCAEA34AB7BBE298 /* mbedtls.c in Sources */,
+				187EC00A48108EFC231DCE4A /* openssl.c in Sources */,
+				2F71421A5F03110C3A10505A /* options.c in Sources */,
+				28E9E53813D60B2A5BBBD378 /* osdep.c in Sources */,
+				7D8A341E7E3D3110F21F025E /* rom.c in Sources */,
+				F6E7B9A0E1D3DF9229B9A7E0 /* route.c in Sources */,
+				ED5DF1CA1CEFC0BCF7FD000A /* runtime.c in Sources */,
+				90F43A94E781A506BFFAB8D4 /* socket.c in Sources */,
+				CA1EA8A0C384AA12B72006E0 /* time.c in Sources */,
+				8CCCD14CE35A3BBEBBD34F8C /* upload.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		2AFEBB5C2E6F8D8EAFDC319C /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"ME_VERSION=\\\"6.1.1\\\"",
+					"ME_COM_OPENSSL=1",
+					"ME_COM_MBEDTLS=0",
+					"ME_COM_SSL=1",
+					"ME_COM_OPENSSL_PATH=\\\"/opt/homebrew\\\"",
+					"ME_COM_MBEDTLS_PATH=\\\"/usr\\\"",
+					"ME_DEBUG=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+				);
+				OBJROOT = "../../build/obj/goahead-lib-macosx-debug";
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-Wno-sign-conversion",
+					"-Wno-unused-parameter",
+					"-Wno-unused-result",
+					"-Wshorten-64-to-32",
+					"-Wall",
+					"-Wno-unknown-warning-option",
+					"-fstack-protector",
+					"--param=ssp-buffer-size=4",
+					"-Wformat",
+					"-Wformat-security",
+					"-Wsign-compare",
+				);
+				OTHER_LDFLAGS = (
+					"-ldl",
+					"-lpthread",
+					"-lm",
+					"-lpam",
+					"-lssl",
+					"-lcrypto",
+					"-g",
+					"-Wl,-no_warn_duplicate_libraries",
+					"-Wl,-rpath,@executable_path/",
+					"-Wl,-rpath,@loader_path/",
+				);
+				SYMROOT = ../../build/bin;
+				USER_HEADER_SEARCH_PATHS = (
+					../../src,
+					../../src/osdep,
+					/opt/homebrew/include,
+				);
+				WARNING_CFLAGS = "-Wall -Wextra";
+			};
+			name = debug;
+		};
+		DA02DC967CF103480C16E2D6 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"ME_VERSION=\\\"6.1.1\\\"",
+					"ME_COM_OPENSSL=1",
+					"ME_COM_MBEDTLS=0",
+					"ME_COM_SSL=1",
+					"ME_COM_OPENSSL_PATH=\\\"/opt/homebrew\\\"",
+					"ME_COM_MBEDTLS_PATH=\\\"/usr\\\"",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+				);
+				OBJROOT = "../../build/obj/goahead-lib-macosx-release";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"-Wno-sign-conversion",
+					"-Wno-unused-parameter",
+					"-Wno-unused-result",
+					"-Wshorten-64-to-32",
+					"-Wall",
+					"-Wno-unknown-warning-option",
+					"-fstack-protector",
+					"--param=ssp-buffer-size=4",
+					"-Wformat",
+					"-Wformat-security",
+					"-Wsign-compare",
+				);
+				OTHER_LDFLAGS = (
+					"-ldl",
+					"-lpthread",
+					"-lm",
+					"-lpam",
+					"-lssl",
+					"-lcrypto",
+					"-s",
+					"-Wl,-no_warn_duplicate_libraries",
+					"-Wl,-rpath,@executable_path/",
+					"-Wl,-rpath,@loader_path/",
+				);
+				SYMROOT = ../../build/bin;
+				USER_HEADER_SEARCH_PATHS = (
+					../../src,
+					../../src/osdep,
+					/opt/homebrew/include,
+				);
+				WARNING_CFLAGS = "-Wall -Wextra";
+			};
+			name = release;
+		};
+		EDD467201EB85F1231D09560 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CONFIGURATION_BUILD_DIR = ../../build/bin;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = NO;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = goahead;
+			};
+			name = debug;
+		};
+		FB4DCA1AF50F868C2F0E885A /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CONFIGURATION_BUILD_DIR = ../../build/bin;
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = NO;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = goahead;
+			};
+			name = release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "goahead-lib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2AFEBB5C2E6F8D8EAFDC319C /* debug */,
+				DA02DC967CF103480C16E2D6 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		A4CEE33AA581E02C1963B17A /* Build configuration list for PBXNativeTarget "libgoahead.dylib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDD467201EB85F1231D09560 /* debug */,
+				FB4DCA1AF50F868C2F0E885A /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+};
+rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

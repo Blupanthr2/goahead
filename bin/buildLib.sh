@@ -1,0 +1,175 @@
+#!/bin/bash
+#
+#   buildLib.sh -- Build the GoAhead distribution files
+#
+#   Creates:
+#     dist/goaheadLib.c      Amalgamated library source
+#     dist/goahead.h         Main header
+#     dist/js.h              JavaScript header
+#     build/goahead-VERSION-src.tgz   Source distribution tarball
+#
+#   Usage: buildLib.sh
+#
+
+set -e
+
+TOP=$(cd "$(dirname "$0")/.." && pwd)
+BUILD="$TOP/build"
+SRC="$TOP/src"
+
+# ---------------------------------------------------------------
+#  Read version from package.json
+# ---------------------------------------------------------------
+VERSION=$(grep '"version"' "$TOP/package.json" | head -1 | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+VERSION=${VERSION:-1.0.0}
+
+NAME="goahead-${VERSION}"
+STAGE="$BUILD/stage/$NAME"
+OUTPUT="$BUILD/${NAME}-src.tgz"
+
+# ---------------------------------------------------------------
+#  dist/ -- amalgamated library source and headers
+# ---------------------------------------------------------------
+mkdir -p "$TOP/dist"
+
+DST="$TOP/dist/goaheadLib.c"
+FILES="action.c alloc.c auth.c cgi.c crypt.c file.c fs.c http.c js.c jst.c \
+       mbedtls.c openssl.c options.c osdep.c rom.c route.c runtime.c socket.c \
+       time.c upload.c"
+
+cat > "${DST}" << 'ENDOFFILE'
+/*
+    goaheadLib.c -- GoAhead Library Source
+
+    This file is a catenation of all the source code. Amalgamating into a
+    single file makes embedding simpler and the resulting application faster,
+    by using compiler optimization within the GoAhead library.
+
+    Prepared by: buildLib.sh
+ */
+
+#include "goahead.h"
+
+#if ME_COM_GOAHEAD
+ENDOFFILE
+
+for f in ${FILES}; do
+    printf '\n\n/********* Start of file src/%s ************/\n\n' "${f}" >> "${DST}"
+    sed -e '/#include "goahead.h"/d' -e '/#include "js.h"/d' "${SRC}/${f}" >> "${DST}"
+done
+
+printf '\n#else\nvoid dummyGoahead(){}\n#endif /* ME_COM_GOAHEAD */\n' >> "${DST}"
+
+echo "      [Info] Created dist/goaheadLib.c: $(wc -l < "${DST}") lines"
+
+cp "$SRC/goahead.h" "$TOP/dist/goahead.h"
+cp "$SRC/js.h" "$TOP/dist/js.h"
+echo "      [Info] Copied dist/goahead.h, dist/js.h"
+
+# ---------------------------------------------------------------
+#  dist/ -- README only (no CLAUDE.md, AI/, or .claude/)
+# ---------------------------------------------------------------
+cp "$TOP/README.md" "$TOP/dist/README.md"
+
+# ---------------------------------------------------------------
+#  Source distribution tarball
+# ---------------------------------------------------------------
+echo "      [Info] Building source distribution for GoAhead ${VERSION}"
+
+rm -fr "$BUILD/stage"
+mkdir -p "$STAGE"
+
+#
+#   Root files (CLAUDE.md and .claude/ are intentionally excluded)
+#
+for f in README.md CONTRIBUTING.md EVAL.md LICENSE.md Makefile make.bat package.json; do
+    [ -f "$TOP/$f" ] && cp "$TOP/$f" "$STAGE/"
+done
+
+#
+#   src/ - full source tree (CLAUDE.md, .claude/, AI/, doc/ are excluded)
+#
+mkdir -p "$STAGE/src"
+(cd "$TOP" && tar cf - \
+    --exclude='CLAUDE.md' \
+    --exclude='.claude' \
+    --exclude='AI' \
+    --exclude='doc' \
+    --exclude='.DS_Store' \
+    src/) | (cd "$STAGE" && tar xf -)
+
+#
+#   projects/ - premake5 and generated build files
+#
+mkdir -p "$STAGE/projects"
+[ -f "$TOP/projects/premake5.lua" ] && cp "$TOP/projects/premake5.lua" "$STAGE/projects/"
+for dir in gmake2 vs2022 xcode; do
+    [ -d "$TOP/projects/$dir" ] && cp -r "$TOP/projects/$dir" "$STAGE/projects/"
+done
+
+#
+#   certs/
+#
+[ -d "$TOP/certs" ] && cp -r "$TOP/certs" "$STAGE/certs"
+
+#
+#   doc/ -- only the API and man pages are shipped
+#
+if [ -d "$TOP/doc/api" ]; then
+    mkdir -p "$STAGE/doc"
+    cp -r "$TOP/doc/api" "$STAGE/doc/api"
+    cp -r "$TOP/doc/man" "$STAGE/doc/man"
+fi
+
+#
+#   installs/
+#
+[ -d "$TOP/installs" ] && cp -r "$TOP/installs" "$STAGE/installs"
+
+#
+#   test/ - with exclusions
+#
+mkdir -p "$STAGE/test"
+(cd "$TOP" && tar cf - \
+    --exclude='CLAUDE.md' \
+    --exclude='.claude' \
+    --exclude='.testme' \
+    --exclude='.local.mk' \
+    --exclude='local.json5' \
+    --exclude='node_modules' \
+    --exclude='.DS_Store' \
+    --exclude='*.log' \
+    --exclude='*K.txt' \
+    test/) | (cd "$STAGE" && tar xf -)
+
+#
+#   dist/ - amalgamated source for pak consumers
+#
+cp -r "$TOP/dist" "$STAGE/dist"
+
+#
+#   bin/buildLib.sh - script to regenerate dist/ amalgamation
+#
+mkdir -p "$STAGE/bin"
+cp "$TOP/bin/buildLib.sh" "$STAGE/bin/buildLib.sh"
+chmod +x "$STAGE/bin/buildLib.sh"
+
+#
+#   Clean up
+#
+find "$STAGE" -name ".DS_Store" -delete 2>/dev/null || true
+
+#
+#   Create tarball
+#
+echo "      [Pack] build/${NAME}-src.tgz"
+mkdir -p "$BUILD"
+tar -czf "$OUTPUT" -C "$BUILD/stage" "$NAME"
+
+cp "$OUTPUT" "$BUILD/goahead-src.tgz"
+
+COUNT=$(tar -tzf "$OUTPUT" | wc -l | tr -d ' ')
+SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
+echo "      [Done] build/goahead-src.tgz ($COUNT files, $SIZE)"
+
+# rm -fr "$BUILD/stage"

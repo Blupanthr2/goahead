@@ -1,154 +1,108 @@
 #
-#   Makefile - Embedthis GoAhead Makefile wrapper for per-platform makefiles
+#   Makefile -- GoAhead Top-level Makefile
 #
-#	This Makefile is for Unix/Linux and Cygwin. On windows, it can be invoked via make.bat.
+#   Uses pre-generated project files from projects/gmake2/.
+#   Auto-detects platform. No premake5 required for building.
 #
-#   You can use this Makefile and build via "make" with a pre-selected configuration. 
+#   Use "make help" for available targets and options.
 #
-#	See projects/$(OS)-$(ARCH)-default-me.h for configuration default settings. Can override
-#	via make environment variables. Use "make help" for a list of available make variable options.
-#
-NAME    := goahead
-OS      := $(shell uname | sed 's/CYGWIN.*/windows/;s/Darwin/macosx/' | tr '[A-Z]' '[a-z]')
-PROFILE ?= dev
 
-ifeq ($(ARCH),)
-	ifeq ($(OS),windows)
-		ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-			ARCH?=x64
-		else
-			ARCH?=x86
-		endif
-	else
-		ARCH:= $(shell uname -m | sed 's/i.86/x86/;s/x86_64/x64/;s/mips.*/mips/;s/aarch/arm/')
-	endif
-endif
+NAME        := goahead
+OPTIMIZE    ?= debug
+TOP         := $(shell realpath .)
+BUILD       := build
+BIN         := $(TOP)/$(BUILD)/bin
+LOCAL       := $(strip $(wildcard ./.local.mk))
 
-ifeq ($(OS),windows)
-    MAKE	:= MAKEFLAGS= projects/windows.bat $(ARCH) nmake -nologo
-    EXT 	:= nmake
+#
+#   Detect make command (prefer gmake)
+#
+MAKE        := $(shell if which gmake >/dev/null 2>&1; then echo gmake ; else echo make ; fi) --no-print-directory
+
+#
+#   Auto-detect platform from host OS
+#
+UNAME       := $(shell uname -s)
+ifeq ($(UNAME),Darwin)
+    PLATFORM := macosx
+else ifeq ($(UNAME),Linux)
+    PLATFORM := linux
+else ifeq ($(UNAME),FreeBSD)
+    PLATFORM := freebsd
 else
-	MAKE    := $(shell if which gmake >/dev/null 2>&1; then echo gmake ; else echo make ; fi) --no-print-directory
-	EXT     := mk
+    $(error Unsupported platform: $(UNAME). Use premake5 to regenerate for your OS.)
 endif
 
-BIN 		:= $(OS)-$(ARCH)-$(PROFILE)/bin
-PATH    	:= $(PWD)/build/$(BIN):$(PATH)
-PROJECT 	:= projects/$(NAME)-$(OS)-default.mk
+CONFIG      := $(OPTIMIZE)_$(PLATFORM)
+PATH        := $(BIN):$(PATH)
+CDPATH      :=
 
 .EXPORT_ALL_VARIABLES:
 
-.PHONY: all build compile clean clobber test installBinary uninstall run deploy install version help
+.PHONY: all build clean doc format help package projects publish test
 
-all build compile:
-	@if [ ! -f $(PROJECT) ] ; then \
-		echo "The build configuration $(PROJECT) is not supported" ; exit 255 ; \
-	fi
-	@echo $(MAKE) -f $(PROJECT) $@
-	@$(MAKE) -f $(PROJECT) $@
-	@echo ; echo 'On Linux/MacOS, you can now install via "sudo make install" or run GoAhead via: "sudo make run"'
-	@echo "To run locally, put $(OS)-$(ARCH)-$(PROFILE)/bin in your path" ; echo
-
-clean clobber installBinary uninstall run:
-	@$(MAKE) -f $(PROJECT) $@
-
-test:
-	@./test/utils/prep-test.sh
-	@tm test
-
-format:
-	@uncrustify -c .uncrustify --replace --no-backup  src/*.{c,h}
-
-deploy:
-	@echo '       [Deploy] $(MAKE) ME_ROOT_PREFIX=$(OS)-$(ARCH)-$(PROFILE)/deploy -f $(PROJECT) installBinary'
-	@$(MAKE) ME_ROOT_PREFIX=$(OS)-$(ARCH)-$(PROFILE)/deploy -f $(PROJECT) installBinary
-
-install:
-	$(MAKE) -f $(PROJECT) $@
-ifneq ($(OS),windows)
-	@echo ; echo 'You can now run via "sudo goahead -v --home /etc/goahead /var/www/goahead"'
-else
-	@echo ; echo 'You can now run via "goahead -v" in the goahead installation directory.'
+ifndef SHOW
+.SILENT:
 endif
 
-version:
-	@$(MAKE) -f $(PROJECT) $@
+all: build
+
+build:
+	@if [ ! -f projects/gmake2/Makefile ] ; then \
+		echo "      [Error] projects/gmake2/Makefile not found. Run: cd projects && premake5 gmake" ; exit 255 ; \
+	fi
+	$(MAKE) -C projects/gmake2 config=$(CONFIG) verbose=$(SHOW)
+	@echo "      [Info] GoAhead $(OPTIMIZE) [$(PLATFORM)]"
+
+clean:
+	@echo "       [Run] clean"
+	rm -fr $(BUILD)
+
+test: build
+	tm test
+
+doc:
+	bun ~/bin/make-doc doc/goahead.dox src/goahead.h GoAhead doc/api
+
+format:
+	uncrustify -q -c .uncrustify --replace --no-backup src/*.{c,h}
+
+package:
+	bash bin/buildLib.sh
+
+cache: build doc package
+	cache
+
+publish: cache
+
+#
+#   Regenerate all premake project files (developer only -- requires premake5)
+#
+projects:
+	@echo "       [Gen] goahead gmake vs2022 xcode4"
+	@cd projects && premake5 gmake >/dev/null && premake5 vs2022 >/dev/null && premake5 xcode4 >/dev/null
+	@fixmake
 
 help:
 	@echo '' >&2
-	@echo 'usage: make [clean, compile, deploy, install, run, uninstall]' >&2
+	@echo 'usage: make [clean, build, test]' >&2
 	@echo '' >&2
-	@echo 'With make, the default configuration can be modified by setting make' >&2
-	@echo 'variables. Set to 0 to disable and 1 to enable:' >&2
+	@echo 'Targets:' >&2
+	@echo '  build               Build libgoahead and executables (default)' >&2
+	@echo '  clean               Remove build artifacts' >&2
+	@echo '  test                Run unit tests' >&2
+	@echo '  doc                 Generate API documentation' >&2
+	@echo '  format              Format source code' >&2
+	@echo '  package             Build dist/goaheadLib.c amalgamated source' >&2
+	@echo '  cache               Build, package and cache' >&2
+	@echo '  publish             Alias for cache' >&2
+	@echo '  projects            Regenerate premake makefiles (developer only)' >&2
 	@echo '' >&2
-	@echo '  ME_GOAHEAD_ACCESS_LOG             # Enable request access log (true|false)' >&2
-	@echo '  ME_GOAHEAD_CLIENT_CACHE           # List of extensions to cache in the client' >&2
-	@echo '  ME_GOAHEAD_CLIENT_CACHE_LIFESPAN  # Time in seconds to cache in the client' >&2
-	@echo '  ME_GOAHEAD_CA_FILE                # File of client certificates (path)' >&2
-	@echo '  ME_GOAHEAD_CERTIFICATE            # Server certificate for SSL (path)' >&2
-	@echo '  ME_GOAHEAD_SSL_CIPHERS            # SSL cipher suite (string)' >&2
-	@echo '  ME_GOAHEAD_CGI                    # Enable the CGI handler (true|false)' >&2
-	@echo '  ME_GOAHEAD_CGI_BIN                # Directory CGI programs (path)' >&2
-	@echo '  ME_GOAHEAD_JAVASCRIPT             # Enable the Javascript JST handler (true|false)' >&2
-	@echo '  ME_GOAHEAD_KEY                    # Server private key for SSL (path)' >&2
-	@echo '  ME_GOAHEAD_LEGACY                 # Enable the GoAhead 2.X legacy APIs (true|false)' >&2
-	@echo '  ME_GOAHEAD_LIMIT_BUFFER           # I/O Buffer size. Also chunk size.' >&2
-	@echo '  ME_GOAHEAD_LIMIT_FILENAME         # Maximum filename size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_HEADER           # Maximum HTTP single header size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_HEADERS          # Maximum HTTP header size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_NUM_HEADERS      # Maximum number of headers' >&2
-	@echo '  ME_GOAHEAD_LIMIT_PASSWORD         # Maximum password size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_POST             # Maximum incoming body size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_PUT              # Maximum PUT body size ~ 200MB' >&2
-	@echo '  ME_GOAHEAD_LIMIT_SESSION_LIFE     # Session lifespan in seconds (30 mins)' >&2
-	@echo '  ME_GOAHEAD_LIMIT_SESSION_COUNT    # Maximum number of sessions to support' >&2
-	@echo '  ME_GOAHEAD_LIMIT_STRING           # Default string allocation size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_TIMEOUT          # Request inactivity timeout in seconds' >&2
-	@echo '  ME_GOAHEAD_LIMIT_URI              # Maximum URI size' >&2
-	@echo '  ME_GOAHEAD_LIMIT_UPLOAD           # Maximum upload size ~ 200MB' >&2
-	@echo '  ME_GOAHEAD_LISTEN                 # Addresses to listen to (["http://IP:port", ...])' >&2
-	@echo '  ME_GOAHEAD_LOGFILE                # Default location and level for debug log (path:level)' >&2
-	@echo '  ME_GOAHEAD_LOGGING                # Enable application logging (true|false)' >&2
-	@echo '  ME_GOAHEAD_PAM                    # Enable Unix Pluggable Auth Module (true|false)' >&2
-	@echo '  ME_GOAHEAD_PUT_DIR                # Define the directory for file uploaded via HTTP PUT (path)' >&2
-	@echo '  ME_GOAHEAD_REALM                  # Authentication realm (string)' >&2
-	@echo '  ME_GOAHEAD_REPLACE_MALLOC         # Replace malloc with non-fragmenting allocator (true|false)' >&2
-	@echo '  ME_GOAHEAD_SSL                    # To enable SSL' >&2
-	@echo '  ME_GOAHEAD_STATIC                 # Build with static linking (true|false)' >&2
-	@echo '  ME_GOAHEAD_STEALTH                # Run in stealth mode. Disable OPTIONS, TRACE (true|false)' >&2
-	@echo '  ME_GOAHEAD_TRACING                # Enable debug tracing (true|false)' >&2
-	@echo '  ME_GOAHEAD_TUNE                   # Optimize (size|speed|balanced)' >&2
-	@echo '  ME_GOAHEAD_UPLOAD                 # Enable file upload (true|false)' >&2
-	@echo '  ME_GOAHEAD_UPLOAD_DIR             # Define directory for uploaded files (path)' >&2
-	@echo '  ME_COM_MBEDTLS                    # Enable the mbed TLS stack' >&2
-	@echo '  ME_COM_OPENSSL                    # Enable the OpenSSL SSL stack, must set ME_COM_OPENSS_PATH' >&2
-	@echo '  ME_ROM                            # Build for ROM without a file system' >&2
-	@echo '  ME_STACK_SIZE                     # Define the VxWorks stack size' >&2
-	@echo '' >&2
-	@echo 'For example, to disable CGI:' >&2
-	@echo '' >&2
-	@echo '  ME_GOAHEAD_CGI=0 make' >&2
-	@echo '' >&2
-	@echo 'Other make environment variables:' >&2
-	@echo '  ARCH               # CPU architecture (x86, x64, ppc, ...)' >&2
-	@echo '  OS                 # Operating system (linux, macosx, windows, vxworks, ...)' >&2
-	@echo '  CC                 # Compiler to use ' >&2
-	@echo '  LD                 # Linker to use' >&2
-	@echo '  CONFIG             # Output directory for built items. Defaults to OS-ARCH-PROFILE' >&2
-	@echo '  CFLAGS             # Add compiler options. For example: -Wall' >&2
-	@echo '  DEBUG              # Set to "debug" for symbols, "release" for optimized builds' >&2
-	@echo '  DFLAGS             # Add compiler defines. For example: -DCOLOR=blue' >&2
-	@echo '  IFLAGS             # Add compiler include directories. For example: -I/extra/includes' >&2
-	@echo '  LDFLAGS            # Add linker options' >&2
-	@echo '  LIBPATHS           # Add linker library search directories. For example: -L/libraries' >&2
-	@echo '  LIBS               # Add linker libraries. For example: -lpthreads' >&2
-	@echo '  PROFILE            # Set to "static" for static linking or "default" for dynamic' >&2
-	@echo '' >&2
-	@echo 'Use "SHOW=1 make" to show executed commands.' >&2
+	@echo 'Make variables:' >&2
+	@echo '  OPTIMIZE=debug|release    Optimization level (default: debug)' >&2
+	@echo '  SHOW=1                    Show build commands' >&2
 	@echo '' >&2
 
-LOCAL_MAKEFILE := $(strip $(wildcard ./.local.mk))
-
-ifneq ($(LOCAL_MAKEFILE),)
-include $(LOCAL_MAKEFILE)
+ifneq ($(LOCAL),)
+include $(LOCAL)
 endif

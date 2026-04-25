@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+	version = "1.0">
+	<FileRef
+		location = "group:cgitest.xcodeproj">
+	</FileRef>
+	<FileRef
+		location = "group:goahead.xcodeproj">
+	</FileRef>
+	<FileRef
+		location = "group:goahead-lib.xcodeproj">
+	</FileRef>
+	<FileRef
+		location = "group:goahead-test.xcodeproj">
+	</FileRef>
+	<FileRef
+		location = "group:gopass.xcodeproj">
+	</FileRef>
+</Workspace>

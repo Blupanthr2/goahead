@@ -1,0 +1,42 @@
+{
+    "name": "goahead",
+    "description": "Embedthis GoAhead",
+    "title": "Embedthis GoAhead",
+    "keywords": [
+        "goahead",
+        "http",
+        "webserver"
+    ],
+    "version": "6.1.1",
+    "homepage": "https://embedthis.com/goahead/",
+    "author": {
+        "name": "Embedthis Software",
+        "email": "dev@embedthis.com",
+        "url": "https://embedthis.com"
+    },
+    "bugs": {
+        "email": "dev@embedthis.com",
+        "url": "http://github.com/embedthis/goahead/issues"
+    },
+    "license": {
+        "type": "Commercial",
+        "url": "https://embedthis.com/licensing/"
+    },
+    "devDependencies": {
+        "makeme": ">=0.9.0",
+        "pak": ">=0.11.0"
+    },
+    "paks": {
+        "certs": "~1",
+        "ejs": "~2.0",
+        "osdep": "~1",
+        "updater": "~1"
+    },
+    "pak": {
+        "import": true,
+        "files": [
+            "dist/",
+            "doc/api/"
+        ]
+    }
+}

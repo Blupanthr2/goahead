@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgitest", "cgitest.vcxproj", "{98DA75C0-04BA-F45B-0DD2-7F3279305BBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3} = {12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goahead", "goahead.vcxproj", "{AEB77006-1A97-EFA1-23AF-7A788F0D5603}"
+	ProjectSection(ProjectDependencies) = postProject
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3} = {12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goahead-lib", "goahead-lib.vcxproj", "{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goahead-test", "goahead-test.vcxproj", "{FB5BCC05-E7BE-5BAA-9044-94607C86272D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3} = {12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gopass", "gopass.vcxproj", "{D2133A00-BEB5-64D6-A770-782A93B1EB26}"
+	ProjectSection(ProjectDependencies) = postProject
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3} = {12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|windows = debug|windows
+		release|windows = release|windows
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98DA75C0-04BA-F45B-0DD2-7F3279305BBD}.debug|windows.ActiveCfg = debug windows|x64
+		{98DA75C0-04BA-F45B-0DD2-7F3279305BBD}.debug|windows.Build.0 = debug windows|x64
+		{98DA75C0-04BA-F45B-0DD2-7F3279305BBD}.release|windows.ActiveCfg = release windows|x64
+		{98DA75C0-04BA-F45B-0DD2-7F3279305BBD}.release|windows.Build.0 = release windows|x64
+		{AEB77006-1A97-EFA1-23AF-7A788F0D5603}.debug|windows.ActiveCfg = debug windows|x64
+		{AEB77006-1A97-EFA1-23AF-7A788F0D5603}.debug|windows.Build.0 = debug windows|x64
+		{AEB77006-1A97-EFA1-23AF-7A788F0D5603}.release|windows.ActiveCfg = release windows|x64
+		{AEB77006-1A97-EFA1-23AF-7A788F0D5603}.release|windows.Build.0 = release windows|x64
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}.debug|windows.ActiveCfg = debug windows|x64
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}.debug|windows.Build.0 = debug windows|x64
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}.release|windows.ActiveCfg = release windows|x64
+		{12655BBA-7E1A-D4AF-070F-CE8673C3CAB3}.release|windows.Build.0 = release windows|x64
+		{FB5BCC05-E7BE-5BAA-9044-94607C86272D}.debug|windows.ActiveCfg = debug windows|x64
+		{FB5BCC05-E7BE-5BAA-9044-94607C86272D}.debug|windows.Build.0 = debug windows|x64
+		{FB5BCC05-E7BE-5BAA-9044-94607C86272D}.release|windows.ActiveCfg = release windows|x64
+		{FB5BCC05-E7BE-5BAA-9044-94607C86272D}.release|windows.Build.0 = release windows|x64
+		{D2133A00-BEB5-64D6-A770-782A93B1EB26}.debug|windows.ActiveCfg = debug windows|x64
+		{D2133A00-BEB5-64D6-A770-782A93B1EB26}.debug|windows.Build.0 = debug windows|x64
+		{D2133A00-BEB5-64D6-A770-782A93B1EB26}.release|windows.ActiveCfg = release windows|x64
+		{D2133A00-BEB5-64D6-A770-782A93B1EB26}.release|windows.Build.0 = release windows|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
