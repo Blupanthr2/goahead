@@ -65,7 +65,10 @@ if (thas('ME_GOAHEAD_CGI')) {
         let scriptFilename = keyword("SCRIPT_FILENAME")
         let path = new Path(scriptFilename).dirname.join("extra/path")
         let translated = new Path(keyword("PATH_TRANSLATED"))
-        ttrue(path == translated)
+        //  Compare path strings with separators normalized. On Windows, goahead emits PATH_TRANSLATED
+        //  with mixed separators (getcwd is "\\" but the URL-derived suffix is "/"); Path.dirname.join
+        //  normalizes to "\\". Collapse both to "/" so the comparison tests logical equality.
+        ttrue(path.toString().replace(/\\/g, "/") == translated.toString().replace(/\\/g, "/"))
         http.close()
     }
 
@@ -113,17 +116,21 @@ if (thas('ME_GOAHEAD_CGI')) {
     }
 
     async function encoding() {
+        //  Modern HTTP clients (curl, Bun) pre-normalize URL dot-segments before transmit,
+        //  so "/extra long/a/../path/a/.." arrives at the server as "/extra long/path/"
+        //  with a trailing slash. Expectations below reflect what actually reaches the server.
         http.get(HTTP + "/cgi-bin/cgitest/extra%20long/a/../path/a/..?var%201=value%201")
         await http.wait()
         match("QUERY_STRING", "var%201=value%201")
         match("SCRIPT_NAME", "/cgi-bin/cgitest")
         match("QVAR var 1", "value 1")
-        match("PATH_INFO", "/extra long/path")
+        match("PATH_INFO", "/extra long/path/")
 
         let scriptFilename = keyword("SCRIPT_FILENAME")
-        let path = new Path(scriptFilename).dirname.join("extra long/path")
+        let path = new Path(scriptFilename).dirname.join("extra long/path/")
         let translated = new Path(keyword("PATH_TRANSLATED"))
-        ttrue(path == translated)
+        //  Normalize separators for cross-platform comparison; see extraPath() for rationale.
+        ttrue(path.toString().replace(/\\/g, "/") == translated.toString().replace(/\\/g, "/"))
         http.close()
     }
 
@@ -192,6 +199,95 @@ if (thas('ME_GOAHEAD_CGI')) {
         http.close()
     }
 
+    /*
+        Test httpoxy mitigation (CVE-2016-5385 family) and restored blacklist behaviour.
+
+        The cgitest program prints every env variable in the "All Defined Environment
+        Variables" section as <P>NAME=VALUE</P>. We assert absence by checking that the
+        literal string "HTTP_PROXY=" does not appear anywhere in the response body.
+
+        Server-side PATH/IFS/BASH_ENV/LD_PRELOAD filtering is exercised via the
+        /blacklist-test route registered in src/test.c — see blacklistHandler(),
+        which calls websSetVar() for each name then forwards to /cgi-bin/cgitest.
+
+        CRLF injection in the Proxy header value is out of scope: the underlying HTTP
+        client normalises or rejects embedded CRLF before the bytes reach the server.
+     */
+    async function httpoxyAndBlacklist() {
+        let h: Http
+
+        //  Proxy header with a value must not produce HTTP_PROXY in the CGI env
+        h = new Http
+        h.setHeader("Proxy", "http://attacker.example:1337")
+        h.get(HTTP + "/cgi-bin/cgitest")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(!h.response.contains("HTTP_PROXY="))
+        h.close()
+
+        //  Proxy header with empty value must not produce HTTP_PROXY in the CGI env
+        h = new Http
+        h.setHeader("Proxy", "")
+        h.get(HTTP + "/cgi-bin/cgitest")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(!h.response.contains("HTTP_PROXY="))
+        h.close()
+
+        //  Proxy header with a long value must not produce HTTP_PROXY in the CGI env
+        //  Use 200 chars — enough to exercise the path without hitting server header limits.
+        h = new Http
+        h.setHeader("Proxy", "http://attacker.example:1337/" + "A".repeat(200))
+        h.get(HTTP + "/cgi-bin/cgitest")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(!h.response.contains("HTTP_PROXY="))
+        h.close()
+
+        //  Legitimate HTTP_USER_AGENT must still propagate to the CGI env
+        h = new Http
+        h.setHeader("User-Agent", "gomock/1.0")
+        h.get(HTTP + "/cgi-bin/cgitest")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(h.response.contains("HTTP_USER_AGENT=gomock/1.0"))
+        h.close()
+
+        //  Legitimate HTTP_ACCEPT must still propagate to the CGI env
+        h = new Http
+        h.setHeader("Accept", "text/html")
+        h.get(HTTP + "/cgi-bin/cgitest")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(h.response.contains("HTTP_ACCEPT=text/html"))
+        h.close()
+
+        //  Query-string vars must be prefixed with CGI_ (ME_GOAHEAD_CGI_VAR_PREFIX) in the CGI env.
+        //  POST body data is delivered via stdin and parsed by the CGI program itself, so it does
+        //  not appear in the env — only query-string keys go through addFormVars(arg=1).
+        h = new Http
+        h.get(HTTP + "/cgi-bin/cgitest?name=joe")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(h.response.contains("CGI_name=joe"))
+        h.close()
+
+        //  Server-side blacklist: the /blacklist-test handler in src/test.c sets PATH, IFS,
+        //  BASH_ENV, LD_PRELOAD, and a non-blacklisted BLACKLIST_SENTINEL via websSetVar(),
+        //  then forwards to /cgi-bin/cgitest. The CGI env build must drop the blacklisted
+        //  names while the sentinel propagates — proving inBlackList() runs end-to-end.
+        h = new Http
+        h.get(HTTP + "/blacklist-test/anything")
+        await h.wait()
+        ttrue(h.status == 200)
+        ttrue(!h.response.contains("PATH=/evil:/bin"))
+        ttrue(!h.response.contains("IFS=X"))
+        ttrue(!h.response.contains("BASH_ENV=/tmp/evil"))
+        ttrue(!h.response.contains("LD_PRELOAD=/tmp/evil.so"))
+        ttrue(h.response.contains("BLACKLIST_SENTINEL=ok"))
+        h.close()
+    }
+
     await forms()
     await extraPath()
     await query()
@@ -200,6 +296,7 @@ if (thas('ME_GOAHEAD_CGI')) {
     await location()
     await quoting()
     await post()
+    await httpoxyAndBlacklist()
 
 } else {
     tskip("CGI not enabled")

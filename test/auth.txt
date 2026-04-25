@@ -10,3 +10,8 @@ user name=julie password=9d8873a123eb506e7f8e84d1f2a26916 roles=user
 user name=joshua password=2fd6e47ff9bb70c0465fd2f5c8e5305e roles=administrator,purchase
 user name=mary password=5b90553bea8ba3686f4239d62801f0f3 roles=user
 user name=peter password=7cdba57892649fd95a540683fdf8fba6 roles=user
+user name=testbf1 password=BF1:00128:k0715dAbGKAUd0DC:ADXY6J8XaIHQ5RkXvW5ok5yUgohWUo3u roles=administrator,purchase
+user name=formbf1 password=BF1:00128:HhPBWg5lCNiTBWfs:6dF7NIQ95I6JPqgTAIoNx7QpoJyeJ90J roles=administrator,purchase
+user name=badbf1 password=BF1:00128:badsalt roles=user
+user name=bigbf1 password=BF1:00128:rLgUv2ShjKqpOZ2a:8VpYc8oKl+0ARNUuVWJRikPWgGy1u+Fr roles=administrator,purchase
+user name=bigmd5 password=68f336d2baa5e01937f31e7d69abc265 roles=administrator,purchase

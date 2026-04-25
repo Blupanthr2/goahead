@@ -15,4 +15,10 @@ fi
 
 mkdir -p cgi-bin web/tmp
 cp ../certs/self.key  ../certs/self.crt .
-cp ../build/${TESTME_PLATFORM}-${TESTME_PROFILE}/bin/cgitest* cgi-bin
+cp ../build/bin/cgitest* cgi-bin
+# cgitest links against libgoahead; its rpath is @loader_path so the lib must sit beside it
+if [ -f ../build/bin/libgoahead.dylib ] ; then
+    cp ../build/bin/libgoahead.dylib cgi-bin/
+elif [ -f ../build/bin/libgoahead.so ] ; then
+    cp ../build/bin/libgoahead.so cgi-bin/
+fi
