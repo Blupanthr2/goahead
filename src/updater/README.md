@@ -4,6 +4,12 @@
     <img src="https://www.embedthis.com/images/pics/circuit-3.png" alt="EmbedThis Updater" width="50%">
 </p>
 
+<p align="center">
+  <a href="https://github.com/embedthis/updater/actions/workflows/ci.yml"><img src="https://github.com/embedthis/updater/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://www.npmjs.com/package/@embedthis/updater"><img src="https://img.shields.io/npm/v/@embedthis/updater.svg" alt="npm version"></a>
+  <a href="https://github.com/embedthis/updater/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+</p>
+
 The EmbedThis Updater is a secure, lightweight command-line utility and library for downloading and applying device software updates published on the [EmbedThis Builder](https://admin.embedthis.com).
 
 ## Security for Devices
@@ -34,7 +40,6 @@ Devices can use the **updater** command or library to enable Over-The-Air (OTA) 
 - Maximum updates per time period throttling
 - Update rate control to minimize service load
 - Ability to defer or rollback updates
-
 
 **Monitoring & Analytics:**
 
@@ -145,15 +150,31 @@ The `update()` function performs a complete OTA update cycle:
 
 ### C Implementation
 
+The build uses pre-generated project files. No additional build tools are required beyond a C compiler and Make.
+
 ```bash
-make                # Build updater program
-make clean          # Clean build artifacts
+make                        # Build updater library and utility
+make OPTIMIZE=release       # Release build
+make clean                  # Remove build artifacts
+make test                   # Run unit tests
+make doc                    # Generate API documentation
+make format                 # Format source code
+make package                # Build dist/updaterLib.c amalgamated source
+SHOW=1 make                 # Verbose build output
 ```
 
+To regenerate premake project files (developer only, requires premake5):
+
+```bash
+make projects
+```
+
+**Windows:** Open `projects/vs2022/updater.sln` in Visual Studio 2022.
+
 **Requirements:**
-- GCC or compatible C compiler
+- GCC, Clang, or MSVC C compiler
 - OpenSSL or LibreSSL development libraries
-- Make
+- Make (GNU Make or gmake)
 
 ### Node.js/Bun Implementation
 
@@ -220,17 +241,26 @@ All implementations provide robust security:
 File | Description
 -|-
 **C Implementation** |
-`Makefile` | Build configuration for C updater
-`main.c` | Command-line interface for C updater
-`updater.c` | Core update library implementation
-`updater.h` | Public API header
+`Makefile` | Top-level build configuration
+`src/main.c` | Command-line interface for C updater
+`src/updater.c` | Core update library implementation
+`src/updater.h` | Public API header
 **JavaScript Implementation** |
 `src/updater.js` | Node.js/Bun command-line updater
 **Shell Script Implementation** |
 `src/updater.sh` | Shell script sample utility
+**Build System** |
+`projects/premake5.lua` | Premake5 build configuration
+`projects/gmake2/` | Generated GNU Makefiles
+`projects/vs2022/` | Generated Visual Studio 2022 projects
+`projects/xcode/` | Generated Xcode projects
+`bin/buildLib.sh` | Builds amalgamated dist/updaterLib.c
 **Supporting Files** |
-`apply.sh` | Sample update application script
 `README.md` | This documentation
+
+## AI Documentation
+
+Machine-readable documentation for LLMs is available in `AI/designs/` and `CLAUDE.md`.
 
 ## Repository
 

@@ -12,9 +12,37 @@
 
 #include "osdep.h"
 
-#include <openssl/ssl.h>
-#include <openssl/x509v3.h>
-#include <openssl/err.h>
+#ifndef ME_NAME
+    #define ME_NAME    "updater"
+#endif
+#ifndef ME_TITLE
+    #define ME_TITLE   "EmbedThis Updater"
+#endif
+
+/*
+    Components
+ */
+#ifndef ME_COM_MBEDTLS
+    #define ME_COM_MBEDTLS 0
+#endif
+#ifndef ME_COM_OPENSSL
+    #define ME_COM_OPENSSL 1
+#endif
+#ifndef ME_COM_OSDEP
+    #define ME_COM_OSDEP   1
+#endif
+#ifndef ME_COM_SSL
+    #define ME_COM_SSL     1
+#endif
+#ifndef ME_COM_UPDATER
+    #define ME_COM_UPDATER 1
+#endif
+
+#if ME_COM_OPENSSL
+    #include <openssl/ssl.h>
+    #include <openssl/x509v3.h>
+    #include <openssl/err.h>
+#endif
 
 /********************************** Defines ***********************************/
 #ifdef __cplusplus
