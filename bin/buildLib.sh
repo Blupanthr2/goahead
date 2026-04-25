@@ -127,20 +127,11 @@ fi
 [ -d "$TOP/installs" ] && cp -r "$TOP/installs" "$STAGE/installs"
 
 #
-#   test/ - with exclusions
+#   test/ - only files tracked in git (excludes runtime artifacts,
+#   local config, untracked logs, etc.)
 #
 mkdir -p "$STAGE/test"
-(cd "$TOP" && tar cf - \
-    --exclude='CLAUDE.md' \
-    --exclude='.claude' \
-    --exclude='.testme' \
-    --exclude='.local.mk' \
-    --exclude='local.json5' \
-    --exclude='node_modules' \
-    --exclude='.DS_Store' \
-    --exclude='*.log' \
-    --exclude='*K.txt' \
-    test/) | (cd "$STAGE" && tar xf -)
+(cd "$TOP" && git ls-files -z test/ | tar --null -T - -cf -) | (cd "$STAGE" && tar xf -)
 
 #
 #   dist/ - amalgamated source for pak consumers
@@ -155,9 +146,15 @@ cp "$TOP/bin/buildLib.sh" "$STAGE/bin/buildLib.sh"
 chmod +x "$STAGE/bin/buildLib.sh"
 
 #
-#   Clean up
+#   Clean up: belt-and-braces removal of common runtime/system droppings
+#   in case future copy steps reintroduce them.
 #
 find "$STAGE" -name ".DS_Store" -delete 2>/dev/null || true
+for d in test/web/tmp test/tmp test/cgi-bin; do
+    if [ -d "$STAGE/$d" ]; then
+        find "$STAGE/$d" -mindepth 1 ! -name .keep -delete 2>/dev/null || true
+    fi
+done
 
 #
 #   Create tarball
@@ -172,4 +169,4 @@ COUNT=$(tar -tzf "$OUTPUT" | wc -l | tr -d ' ')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
 echo "      [Done] build/goahead-src.tgz ($COUNT files, $SIZE)"
 
-# rm -fr "$BUILD/stage"
+rm -fr "$BUILD/stage"
