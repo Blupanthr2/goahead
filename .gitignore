@@ -1,4 +1,5 @@
 .cdrc
+.cdrc.bat
 .DS_Store
 .expansive-lastgen
 .install-certs-modified
@@ -6,7 +7,10 @@
 .profile
 .promoted
 .tags*
+.test
+.testme
 .version
+*.o
 *.swp
 **/*.guid
 /projects/goahead-core*
@@ -15,6 +19,7 @@ build/
 cgitest
 dh.pem
 huge.txt
+node_modules
 paks/*
 !paks/ejs/
 projecs/*.sdf
@@ -25,12 +30,13 @@ projects/*/project.xcworkspace/
 projects/*/xcuserdata/
 report
 settings.json
+settings.local.json
 src/self.crt
 src/self.key
+src/updater/updater
 test/burp*
 test/cpp.cpp
 test/self.crt
 test/self.key
 test/web/tmp/a.dat
 test/web/tmp/small.dat
-test/node_modules
