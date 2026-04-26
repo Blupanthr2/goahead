@@ -5,7 +5,9 @@
         Options:
         --auth authFile        # User and role configuration
         --background           # Run as a Linux daemon
+        --cert certFile        # Server SSL certificate (PEM)
         --home directory       # Change to directory to run
+        --key keyFile          # Server SSL private key (PEM)
         --log logFile:level    # Log to file file at verbosity level
         --route routeFile      # Route configuration file
         --verbose              # Same as --log stdout:2
@@ -64,6 +66,16 @@ MAIN(goahead, int argc, char **argv, char **envp) {
 #if ME_UNIX_LIKE && !MACOSX
         } else if (smatch(argp, "--background") || smatch(argp, "-b")) {
             websSetBackground(1);
+#endif
+
+#if ME_COM_SSL
+        } else if (smatch(argp, "--cert")) {
+            if (argind >= argc) usage();
+            websSetSslCertFile(argv[++argind]);
+
+        } else if (smatch(argp, "--key")) {
+            if (argind >= argc) usage();
+            websSetSslKeyFile(argv[++argind]);
 #endif
 
         } else if (smatch(argp, "--debugger") || smatch(argp, "-d") || smatch(argp, "-D")) {
@@ -190,7 +202,6 @@ static void logHeader(void)
     logmsg(2, "Host:               %s", websGetServer());
     logmsg(2, "Directory:          %s", home);
     logmsg(2, "Documents:          %s", websGetDocuments());
-    logmsg(2, "Configure:          %s", ME_CONFIG_CMD);
     logmsg(2, "---------------------------------------------");
 }
 
@@ -206,8 +217,14 @@ static void usage(void)
 #if ME_UNIX_LIKE && !MACOSX
             "    --background           # Run as a Unix daemon\n"
 #endif
+#if ME_COM_SSL
+            "    --cert certFile        # Server SSL certificate (PEM)\n"
+#endif
             "    --debugger             # Run in debug mode\n"
             "    --home directory       # Change to directory to run\n"
+#if ME_COM_SSL
+            "    --key keyFile          # Server SSL private key (PEM)\n"
+#endif
             "    --log logFile:level    # Log to file file at verbosity level\n"
             "    --route routeFile      # Route configuration file\n"
             "    --verbose              # Same as --log stdout:2\n"
