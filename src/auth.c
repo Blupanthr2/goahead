@@ -70,7 +70,7 @@ static void loginServiceProc(Webs *wp);
 #if ME_GOAHEAD_DIGEST
 static char *calcDigest(Webs *wp, char *username, char *password);
 static char *createDigestNonce(Webs *wp);
-static char *parseDigestNonce(char *nonce, char **secret, char **realm, WebsTime *when);
+static char *parseDigestNonce(char *nonce, char **secret, char **realm, WebsTime *when, char **counterStr);
 #endif
 
 #if ME_COMPILER_HAS_PAM
@@ -582,7 +582,7 @@ WebsVerify websGetPasswordStoreVerify(void)
 
 PUBLIC bool websVerifyPasswordFromFile(Webs *wp)
 {
-    char passbuf[ME_GOAHEAD_LIMIT_PASSWORD * 3 + 3];
+    char passbuf[WEBS_MAX_PASSWORD_BUFFER];
     bool success;
 
     assert(wp);
@@ -591,29 +591,69 @@ PUBLIC bool websVerifyPasswordFromFile(Webs *wp)
         return 0;
     }
     /*
-        Verify the password. BF1 means blowfish salted hash.
-        If using Digest auth, we compare the digest of the password.
-        Otherwise we encode the plain-text password and compare that
+        Enforce a plaintext password length ceiling independent of username or realm length.
+        For Digest auth wp->password holds a precomputed response hash, not plaintext, so the
+        check is gated on !wp->encoded.
      */
-    if (sstarts(wp->user->password, "BF1:")) {
-        // Blowfish salted hash
-        success = websCheckPassword(wp->password, wp->user->password);
-        wfree(wp->password);
-        wp->password = sclone(wp->user->password);
-
-    } else if (!wp->encoded) {
-        /*
-            SECURITY Acceptable: - Legacy MD5 hash - required for backward compatibility with digest auth
-            which must use MD5. Newer clients may suppport other algorithms, but not widespread.
-         */
-        fmt(passbuf, sizeof(passbuf), "%s:%s:%s", wp->username, ME_GOAHEAD_REALM, wp->password);
-        wfree(wp->password);
-        wp->password = websMD5(passbuf);
-        wp->encoded = 1;
+    if (!wp->encoded && wp->password && slen(wp->password) > WEBS_MAX_PASSWORD) {
+        trace(5, "Password for user \"%s\" exceeds maximum length", wp->username);
+        return 0;
     }
+    /*
+        Verify wp->password against the stored user->password record.
+
+        wp->password is either plaintext or an MD5 digest depending on the client's auth scheme. wp->encoded distinguishes the two:
+          - Set by parseDigestDetails when the client supplied a Digest response.
+            wp->password holds the client-computed MD5(HA1:nonce:HA2) hash.
+          - Cleared by parseBasicDetails after base64-decoding a Basic Authorization header.
+            wp->password holds plaintext.
+          - Set by this routine after hashing plaintext to MD5, so repeat calls for the same
+            request do not re-hash.
+
+        Three mutually exclusive auth cases are handled below in request-driven order.
+        Digest is selected first by the request-level wp->digest signal so it cannot
+        be diverted through the BF1 branch (which would always fail since digest carries
+        no plaintext to bcrypt). Basic/Form auth then dispatches by stored-hash format.
+          1. Digest auth - wp->digest is the server-computed digest; constant-time compare against
+                           wp->password (the client-supplied digest response). Requires MD5-HA1
+                           stored hash; BF1 is rejected explicitly.
+          2. BF1 bcrypt  - stored hash starts with "BF1:". Bcrypt username:realm:plaintext and verify.
+          3. Legacy MD5  - stored hash is MD5(username:realm:password). MD5-hash the incoming
+                           plaintext (unless already encoded) and constant-time compare.
+
+        Wrapping plaintext as username:realm:password ensures a stored hash is not portable across
+        users or realms.
+     */
     if (wp->digest) {
-        success = pmatch(wp->password, wp->digest);
+        /*
+            Digest auth: compare client-supplied digest (wp->password) to server-computed digest (wp->digest).
+            Digest can only verify against an MD5-HA1 stored hash; a BF1 stored hash is incompatible
+            because digest never transmits plaintext. Reject explicitly rather than silently failing
+            through the BF1 branch.
+         */
+        if (sstarts(wp->user->password, "BF1:")) {
+            trace(2, "Digest authentication requires MD5-HA1 stored hash, not BF1, for user \"%s\"", wp->username);
+            return 0;
+        }
+        success = pmatch(wp->digest, wp->password);
+    } else if (sstarts(wp->user->password, "BF1:")) {
+        // BF1 (bcrypt) stored hash. wp->password is plaintext; bcrypt and verify.
+        fmt(passbuf, sizeof(passbuf), "%s:%s:%s", wp->username, ME_GOAHEAD_REALM, wp->password);
+        success = websCheckPassword(passbuf, wp->user->password);
     } else {
+        // Legacy MD5 stored hash: MD5(username:realm:password).
+        if (!wp->encoded) {
+            /*
+                wp->password is plaintext from Basic auth. Encode to MD5 and cache by setting wp->encoded
+                so subsequent calls on the same request skip the rehash.
+                SECURITY Acceptable: - Legacy MD5 hash - required for backward compatibility with digest auth
+                which must use MD5. Newer clients may support other algorithms, but not widespread.
+             */
+            fmt(passbuf, sizeof(passbuf), "%s:%s:%s", wp->username, ME_GOAHEAD_REALM, wp->password);
+            wfree(wp->password);
+            wp->password = websMD5(passbuf);
+            wp->encoded = 1;
+        }
         success = pmatch(wp->password, wp->user->password);
     }
     if (success) {
@@ -813,7 +853,7 @@ static void digestLogin(Webs *wp)
 static bool parseDigestDetails(Webs *wp)
 {
     WebsTime when;
-    char     *decoded, *value, *tok, *key, *keyBuf, *dp, *sp, *secret, *realm;
+    char     *decoded, *value, *tok, *key, *keyBuf, *dp, *sp, *secret, *realm, *counterStr, *preimage, *expected;
     int      seenComma;
 
     assert(wp);
@@ -930,9 +970,8 @@ static bool parseDigestDetails(Webs *wp)
             break;
 
         case 's':
-            if (scaselesscmp(key, "stale") == 0) {
-                break;
-            }
+            /*  Just ignore "stale" */
+            break;
 
         case 'u':
             if (scaselesscmp(key, "uri") == 0) {
@@ -972,18 +1011,14 @@ static bool parseDigestDetails(Webs *wp)
     /*
         Validate the nonce value - prevents replay attacks
      */
-    when = 0; secret = 0; realm = 0;
-    decoded = parseDigestNonce(wp->nonce, &secret, &realm, &when);
-    if (decoded == 0 || secret == 0 || realm == 0) {
+    when = 0; secret = 0; realm = 0; counterStr = 0;
+    decoded = parseDigestNonce(wp->nonce, &secret, &realm, &when, &counterStr);
+    if (decoded == 0 || secret == 0 || realm == 0 || counterStr == 0) {
         trace(2, "Access denied: Bad nonce");
         wfree(decoded);
         return 0;
     }
-    if (!smatch(masterSecret, secret)) {
-        trace(2, "Access denied: Nonce mismatch");
-        wfree(decoded);
-        return 0;
-    } else if (!smatch(realm, ME_GOAHEAD_REALM)) {
+    if (!smatch(realm, ME_GOAHEAD_REALM)) {
         trace(2, "Access denied: Realm mismatch");
         wfree(decoded);
         return 0;
@@ -991,10 +1026,30 @@ static bool parseDigestDetails(Webs *wp)
         trace(2, "Access denied: Bad qop");
         wfree(decoded);
         return 0;
+    } else if (when > (WebsTime) time(0)) {
+        trace(2, "Access denied: Nonce has future timestamp");
+        wfree(decoded);
+        return 0;
     } else if ((when + ME_GOAHEAD_NONCE_DURATION) < time(0)) {
         trace(2, "Access denied: Nonce is stale");
         wfree(decoded);
         return 0;
+    } else {
+        /*
+            Recompute the expected nonce hash from masterSecret, realm, timestamp, and counter,
+            then compare against the hash extracted from the nonce using constant-time pmatch.
+            SECURITY Acceptable: MD5 is used for legacy digest authentication nonce verification.
+         */
+        preimage = sfmt("%s:%s:%x:%s", masterSecret, ME_GOAHEAD_REALM, (unsigned int) when, counterStr);
+        expected = websMD5Block(preimage, slen(preimage), NULL);
+        wfree(preimage);
+        if (!pmatch(expected, secret)) {
+            wfree(expected);
+            trace(2, "Access denied: Nonce mismatch");
+            wfree(decoded);
+            return 0;
+        }
+        wfree(expected);
     }
     if (!wp->user) {
         if ((wp->user = websLookupUser(wp->username)) == 0) {
@@ -1011,23 +1066,39 @@ static bool parseDigestDetails(Webs *wp)
 
 
 /*
-    Create a nonce value for digest authentication (RFC 2617)
-    The masterSecret is cryptographically secure.
+    Create a nonce value for digest authentication (RFC 2617).
+    The nonce format is: base64(MD5(masterSecret:realm:hex_time:hex_counter):hex_time:hex_counter)
+    The masterSecret is bound via a one-way MD5 hash so it is never transmitted in recoverable form.
+    SECURITY Acceptable: MD5 is used for legacy digest authentication nonce construction.
  */
 static char *createDigestNonce(Webs *wp)
 {
     static int64 next = 0;
-    char         nonce[256];
+    char         *hash, *preimage, *plain, *encoded;
+    unsigned int hexTime;
 
     assert(wp);
     assert(wp->route);
 
-    fmt(nonce, sizeof(nonce), "%s:%s:%x:%x", masterSecret, ME_GOAHEAD_REALM, time(0), next++);
-    return websEncode64(nonce);
+    hexTime = (unsigned int) time(0);
+    preimage = sfmt("%s:%s:%x:%llx", masterSecret, ME_GOAHEAD_REALM, hexTime, (long long) next);
+    hash = websMD5Block(preimage, slen(preimage), NULL);
+    wfree(preimage);
+    plain = sfmt("%s:%x:%llx", hash, hexTime, (long long) next++);
+    wfree(hash);
+    encoded = websEncode64(plain);
+    wfree(plain);
+    return encoded;
 }
 
 
-static char *parseDigestNonce(char *nonce, char **secret, char **realm, WebsTime *when)
+/*
+    Parse a digest nonce of the form base64(hash:hex_time:hex_counter).
+    Sets *secret to the hash field, *realm to ME_GOAHEAD_REALM (always the server realm),
+    *when to the decoded timestamp, and *counterStr to the counter string.
+    The caller owns the returned decoded buffer; *secret and *counterStr point into it.
+ */
+static char *parseDigestNonce(char *nonce, char **secret, char **realm, WebsTime *when, char **counterStr)
 {
     char *tok, *decoded, *whenStr;
 
@@ -1035,15 +1106,25 @@ static char *parseDigestNonce(char *nonce, char **secret, char **realm, WebsTime
     assert(secret);
     assert(realm);
     assert(when);
+    assert(counterStr);
 
     if ((decoded = websDecode64(nonce)) == 0) {
         return 0;
     }
+    *secret = 0;
+    *realm = 0;
+    *when = 0;
+    *counterStr = 0;
     if (strchr(decoded, ':')) {
         *secret = stok(decoded, ":", &tok);
-        *realm = stok(NULL, ":", &tok);
         whenStr = stok(NULL, ":", &tok);
-        *when = hextoi(whenStr);
+        *counterStr = stok(NULL, ":", &tok);
+        *when = (WebsTime) hextoi(whenStr);
+        /*
+            The realm is not stored in the new nonce format; set it to the server realm
+            so the caller's existing realm-match check works without modification.
+         */
+        *realm = ME_GOAHEAD_REALM;
     }
     return decoded;
 }
