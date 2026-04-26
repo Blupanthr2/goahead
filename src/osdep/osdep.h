@@ -15,26 +15,11 @@
 #ifndef _h_OSDEP
 #define _h_OSDEP 1
 
-/********************************** Includes **********************************/
-
-#ifndef OSDEP_USE_ME
-#define OSDEP_USE_ME 1
-#endif
-
-#if OSDEP_USE_ME
-#include "me.h"
-#endif
-
 /******************************* Default Features *****************************/
+
 /*
     Default features
  */
-#ifndef ME_COM_SSL
-    #define ME_COM_SSL 0                /**< Build without SSL support */
-#endif
-#ifndef ME_DEBUG
-    #define ME_DEBUG 0                  /**< Default to a debug build */
-#endif
 #ifndef ME_FLOAT
     #define ME_FLOAT 1                  /**< Build with floating point support */
 #endif
@@ -198,17 +183,17 @@
     #define ME_CPU_ARCH ME_CPU_ALPHA
     #define CPU_ENDIAN ME_LITTLE_ENDIAN
 
-#elif defined(__arm64__) || defined(__aarch64__)
+#elif defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM64)
     #define ME_CPU "arm64"
     #define ME_CPU_ARCH ME_CPU_ARM64
     #define CPU_ENDIAN ME_LITTLE_ENDIAN
 
-#elif defined(__arm__)
+#elif defined(__arm__) || defined(_M_ARM)
     #define ME_CPU "arm"
     #define ME_CPU_ARCH ME_CPU_ARM
     #define CPU_ENDIAN ME_LITTLE_ENDIAN
 
-#elif defined(__x86_64__) || defined(_M_AMD64)
+#elif defined(__x86_64__) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64)
     #define ME_CPU "x64"
     #define ME_CPU_ARCH ME_CPU_X64
     #define CPU_ENDIAN ME_LITTLE_ENDIAN
@@ -233,14 +218,15 @@
     #define ME_CPU_ARCH ME_CPU_MIPS64
     #define CPU_ENDIAN ME_BIG_ENDIAN
 
-#elif defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
+#elif defined(__ppc64__) || defined(__powerpc64__)
+    #define ME_CPU "ppc64"
+    #define ME_CPU_ARCH ME_CPU_PPC64
+    #define CPU_ENDIAN ME_BIG_ENDIAN
+
+#elif defined(__ppc__) || defined(__powerpc__) || defined(__ppc) || defined(__POWERPC__)
     #define ME_CPU "ppc"
     #define ME_CPU_ARCH ME_CPU_PPC
     #define CPU_ENDIAN ME_BIG_ENDIAN
-
-#elif defined(__ppc64__)
-    #define CPU "ppc64"
-    #define CPU_ARCH CPU_PPC64
 
 #elif defined(__sparc__)
     #define ME_CPU "sparc"
@@ -258,20 +244,20 @@
     #define ME_CPU_ARCH ME_CPU_SH
     #define CPU_ENDIAN ME_LITTLE_ENDIAN
 
-#elif defined(__riscv_32)
-    #define ME_CPU "riscv"
-    #define ME_CPU_ARCH ME_CPU_RISCV
-    #define ME_CPU_ENDIAN ME_LITTLE_ENDIAN
-
-#elif defined(__riscv_64)
+#elif defined(__riscv) && (__riscv_xlen == 64)
     #define ME_CPU "riscv64"
     #define ME_CPU_ARCH ME_CPU_RISCV64
-    #define ME_CPU_ENDIAN ME_LITTLE_ENDIAN
+    #define CPU_ENDIAN ME_LITTLE_ENDIAN
 
-#elif defined(__XTENSA__)
+#elif defined(__riscv) && (__riscv_xlen == 32)
+    #define ME_CPU "riscv"
+    #define ME_CPU_ARCH ME_CPU_RISCV
+    #define CPU_ENDIAN ME_LITTLE_ENDIAN
+
+#elif defined(__XTENSA__) || defined(__xtensa__)
     #define ME_CPU "xtensa"
     #define ME_CPU_ARCH ME_CPU_XTENSA
-    #define ME_CPU_ENDIAN ME_LITTLE_ENDIAN
+    #define CPU_ENDIAN ME_LITTLE_ENDIAN
 #else
     #error "Cannot determine CPU type in osdep.h"
 #endif
@@ -284,179 +270,619 @@
 #endif
 
 /**
+    @section Operating System Constants
+
+    Operating system constants for cross-platform compilation. These constants are used with the ME_OS_TYPE macro
+    to determine the target operating system at compile time. The osdep module automatically detects the
+    operating system based on compiler-defined symbols and sets ME_OS_TYPE to the appropriate numeric value.
+*/
+
+/**
+    Unknown or unsupported operating system.
+    @stability Stable
+*/
+#define ME_OS_UNKNOWN   0
+
+/**
+    macOS / Mac OS X operating system.
+    @stability Stable
+*/
+#define ME_OS_MACOSX    1
+
+/**
+    Linux operating system.
+    @stability Stable
+*/
+#define ME_OS_LINUX     2
+
+/**
+    FreeBSD operating system.
+    @stability Stable
+*/
+#define ME_OS_FREEBSD   3
+
+/**
+    OpenBSD operating system.
+    @stability Stable
+*/
+#define ME_OS_OPENBSD   4
+
+/**
+    Microsoft Windows operating system.
+    @stability Stable
+*/
+#define ME_OS_WINDOWS   5
+
+/**
+    OS/2 operating system.
+    @stability Stable
+*/
+#define ME_OS_OS2       6
+
+/**
+    MS-DOS operating system.
+    @stability Stable
+*/
+#define ME_OS_MSDOS     7
+
+/**
+    NetWare operating system.
+    @stability Stable
+*/
+#define ME_OS_NETWARE   8
+
+/**
+    BSDi operating system.
+    @stability Stable
+*/
+#define ME_OS_BSDI      9
+
+/**
+    NetBSD operating system.
+    @stability Stable
+*/
+#define ME_OS_NETBSD    10
+
+/**
+    QNX operating system.
+    @stability Stable
+*/
+#define ME_OS_QNX       11
+
+/**
+    HP-UX operating system.
+    @stability Stable
+*/
+#define ME_OS_HPUX      12
+
+/**
+    IBM AIX operating system.
+    @stability Stable
+*/
+#define ME_OS_AIX       13
+
+/**
+    Cygwin POSIX compatibility layer on Windows.
+    @stability Stable
+*/
+#define ME_OS_CYGWIN    14
+
+/**
+    OpenVMS operating system.
+    @stability Stable
+*/
+#define ME_OS_VMS       15
+
+/**
+    VxWorks real-time operating system.
+    @stability Stable
+*/
+#define ME_OS_VXWORKS   16
+
+/**
+    eCos embedded operating system.
+    @stability Stable
+*/
+#define ME_OS_ECOS      17
+
+/**
+    Texas Instruments DSP platform.
+    @stability Stable
+*/
+#define ME_OS_TIDSP     18
+
+/**
+    FreeRTOS real-time operating system (including ESP32).
+    @stability Stable
+*/
+#define ME_OS_FREERTOS  19
+
+/**
+    Sun/Oracle Solaris operating system.
+    @stability Stable
+*/
+#define ME_OS_SOLARIS   20
+
+/**
     @section Operating System Detection
 
     Automatic detection of the target operating system based on compiler-defined preprocessor symbols.
-    The osdep module examines compiler-specific OS macros and sets appropriate platform flags including
-    ME_OS, ME_UNIX_LIKE, ME_WIN_LIKE, ME_BSD_LIKE, and threading support flags. Most operating systems
-    provide standard compiler symbols, with VxWorks being a notable exception requiring explicit detection.
+    The osdep module examines compiler-specific OS macros and sets ME_OS_TYPE to the appropriate numeric constant.
+    Most operating systems provide standard compiler symbols, with VxWorks being a notable exception
+    requiring explicit detection via VXWORKS define.
+
+    Order matters for cross compilation
 */
-#if defined(__APPLE__)
+#ifndef ME_OS_TYPE
+    #if defined(__APPLE__)
+        #define ME_OS_TYPE ME_OS_MACOSX
+    #elif defined(__linux__)
+        #define ME_OS_TYPE ME_OS_LINUX
+    #elif defined(__FreeBSD__)
+        #define ME_OS_TYPE ME_OS_FREEBSD
+    #elif defined(__OpenBSD__)
+        #define ME_OS_TYPE ME_OS_OPENBSD
+    #elif defined(_WIN32)
+        #define ME_OS_TYPE ME_OS_WINDOWS
+    #elif defined(__OS2__)
+        #define ME_OS_TYPE ME_OS_OS2
+    #elif defined(MSDOS) || defined(__DME__)
+        #define ME_OS_TYPE ME_OS_MSDOS
+    #elif defined(__NETWARE_386__)
+        #define ME_OS_TYPE ME_OS_NETWARE
+    #elif defined(__bsdi__)
+        #define ME_OS_TYPE ME_OS_BSDI
+    #elif defined(__NetBSD__)
+        #define ME_OS_TYPE ME_OS_NETBSD
+    #elif defined(__QNX__)
+        #define ME_OS_TYPE ME_OS_QNX
+    #elif defined(__hpux)
+        #define ME_OS_TYPE ME_OS_HPUX
+    #elif defined(_AIX)
+        #define ME_OS_TYPE ME_OS_AIX
+    #elif defined(__CYGWIN__)
+        #define ME_OS_TYPE ME_OS_CYGWIN
+    #elif defined(__VMS)
+        #define ME_OS_TYPE ME_OS_VMS
+    #elif defined(VXWORKS)
+        #define ME_OS_TYPE ME_OS_VXWORKS
+    #elif defined(ESP_PLATFORM) || defined(INC_FREERTOS_H) || defined(FREERTOS_CONFIG_H) || defined(ARDUINO) || defined(FREERTOS)
+        #define ME_OS_TYPE ME_OS_FREERTOS
+    #elif defined(ECOS)
+        #define ME_OS_TYPE ME_OS_ECOS
+    #elif defined(TIDSP)
+        #define ME_OS_TYPE ME_OS_TIDSP
+    #elif defined(__sun) && defined(__SVR4)
+        #define ME_OS_TYPE ME_OS_SOLARIS
+    #else
+        #define ME_OS_TYPE ME_OS_UNKNOWN
+    #endif
+#endif
+
+/**
+    @section Operating System Platform Attributes
+
+    Based on the detected ME_OS_TYPE value, this section sets platform-specific attributes including:
+    - ME_OS string name for the platform
+    - OS name macros (LINUX, MACOSX, WINDOWS, etc.)
+    - POSIX compliance flag
+    - ME_UNIX_LIKE and ME_WIN_LIKE classification
+    - ME_BSD_LIKE for BSD-derived systems
+    - HAS_USHORT, HAS_UINT type availability
+    - PTHREADS threading support
+*/
+#if ME_OS_TYPE == ME_OS_MACOSX
     #define ME_OS "macosx"
     #define MACOSX 1
+    #define HAS_USHORT 1
+    #define HAS_UINT 1
+    #define PTHREADS 1
     #define POSIX 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
     #define ME_BSD_LIKE 1
-    #define HAS_USHORT 1
-    #define HAS_UINT 1
 
-#elif defined(__linux__)
+#elif ME_OS_TYPE == ME_OS_LINUX
     #define ME_OS "linux"
     #define LINUX 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
-    #define PTHREADS 1
 
-#elif defined(__FreeBSD__)
+#elif ME_OS_TYPE == ME_OS_FREEBSD
     #define ME_OS "freebsd"
     #define FREEBSD 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
     #define ME_BSD_LIKE 1
     #define HAS_USHORT 1
     #define HAS_UINT 1
-    #define PTHREADS 1
 
-#elif defined(__OpenBSD__)
+#elif ME_OS_TYPE == ME_OS_OPENBSD
     #define ME_OS "openbsd"
     #define OPENBSD 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
     #define ME_BSD_LIKE 1
-    #define PTHREADS 1
 
-#elif defined(_WIN32)
+#elif ME_OS_TYPE == ME_OS_WINDOWS
     #define ME_OS "windows"
     #define WINDOWS 1
     #define POSIX 1
+    #define PTHREADS 0
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 1
 
-#elif defined(__OS2__)
+#elif ME_OS_TYPE == ME_OS_OS2
     #define ME_OS "os2"
-    #define OS2 0
+    #define OS2 1
+    #define PTHREADS 0
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
 
-#elif defined(MSDOS) || defined(__DME__)
+#elif ME_OS_TYPE == ME_OS_MSDOS
     #define ME_OS "msdos"
-    #define WINDOWS 0
+    #define MSDOS 1
+    #define PTHREADS 0
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
 
-#elif defined(__NETWARE_386__)
+#elif ME_OS_TYPE == ME_OS_NETWARE
     #define ME_OS "netware"
-    #define NETWARE 0
+    #define NETWARE 1
+    #define PTHREADS 0
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
 
-#elif defined(__bsdi__)
+#elif ME_OS_TYPE == ME_OS_BSDI
     #define ME_OS "bsdi"
     #define BSDI 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
     #define ME_BSD_LIKE 1
-    #define PTHREADS 1
 
-#elif defined(__NetBSD__)
+#elif ME_OS_TYPE == ME_OS_NETBSD
     #define ME_OS "netbsd"
     #define NETBSD 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
     #define ME_BSD_LIKE 1
-    #define PTHREADS 1
 
-#elif defined(__QNX__)
+#elif ME_OS_TYPE == ME_OS_QNX
     #define ME_OS "qnx"
-    #define QNX 0
+    #define QNX 1
+    #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
-    #define PTHREADS 1
 
-#elif defined(__hpux)
+#elif ME_OS_TYPE == ME_OS_HPUX
     #define ME_OS "hpux"
     #define HPUX 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
-    #define PTHREADS 1
 
-#elif defined(_AIX)
+#elif ME_OS_TYPE == ME_OS_AIX
     #define ME_OS "aix"
     #define AIX 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
-    #define PTHREADS 1
 
-#elif defined(__CYGWIN__)
+#elif ME_OS_TYPE == ME_OS_CYGWIN
     #define ME_OS "cygwin"
     #define CYGWIN 1
+    #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 1
     #define ME_WIN_LIKE 0
 
-#elif defined(__VMS)
+#elif ME_OS_TYPE == ME_OS_VMS
     #define ME_OS "vms"
     #define VMS 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
 
-#elif defined(VXWORKS)
-    /* VxWorks does not have a pre-defined symbol */
+#elif ME_OS_TYPE == ME_OS_VXWORKS
     #define ME_OS "vxworks"
+    #define VXWORKS 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
     #define HAS_USHORT 1
-    #define PTHREADS 1
 
-#elif defined(ECOS)
-    /* ECOS may not have a pre-defined symbol */
+#elif ME_OS_TYPE == ME_OS_ECOS
     #define ME_OS "ecos"
+    #define ECOS 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
 
-#elif defined(TIDSP)
+#elif ME_OS_TYPE == ME_OS_TIDSP
     #define ME_OS "tidsp"
+    #define TIDSP 1
+    #define HAS_INT32 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
-    #define HAS_INT32 1
 
-#elif defined(ESP_PLATFORM)
+#elif ME_OS_TYPE == ME_OS_FREERTOS
     #define ME_OS "freertos"
     #define FREERTOS 1
-    #define ESP32 1
+    #define HAS_INT32 1
     #define POSIX 1
+    #define PTHREADS 1
     #define ME_UNIX_LIKE 0
     #define ME_WIN_LIKE 0
-    #define PLATFORM "esp"
-    #define PTHREADS 1
-    #define HAS_INT32 1
+    #if defined(ESP_PLATFORM)
+        #define ESP32 1
+        #define PLATFORM "esp"
+    #endif
 
-#elif defined(INC_FREERTOS_H) || defined(FREERTOS_CONFIG_H)
-    #define ME_OS "freertos"
-    #define FREERTOS 1
+#elif ME_OS_TYPE == ME_OS_SOLARIS
+    #define ME_OS "solaris"
+    #define SOLARIS 1
     #define POSIX 1
-    #define ME_UNIX_LIKE 0
-    #define ME_WIN_LIKE 0
     #define PTHREADS 1
-    #define HAS_INT32 1
+    #define ME_UNIX_LIKE 1
+    #define ME_WIN_LIKE 0
+#endif
 
-#elif defined(ARDUINO)
-    #define ME_OS "freertos"
-    #define FREERTOS 1
-    #define POSIX 1
-    #define ME_UNIX_LIKE 0
-    #define ME_WIN_LIKE 0
-    #define PTHREADS 1
-    #define HAS_INT32 1
+/*
+    Simulated platforms hosted on MacOS, Linux, or Windows
+ */
+#if defined(__APPLE__) || defined(__linux__)
+    #define ME_SIMULATED 1
+    #define ME_ON_UNIX 1
+#elif defined(_WIN32)
+    #define ME_SIMULATED 1
+    #define ME_ON_WINDOWS 1
+#endif
+
+/**
+    @section Compiler Feature Detection
+
+    Auto-detection of compiler capabilities based on OS type and compiler. These defaults match
+    MakeMe probe results for supported platforms. All macros are #ifndef guarded so that values
+    from a MakeMe-generated me.h (included before osdep.h) take precedence.
+*/
+
+/*
+    ME_COMPILER_HAS_ATOMIC - C11 __atomic_* builtins.
+    Available with GCC 4.7+ and Clang on all platforms except VxWorks.
+ */
+#ifndef ME_COMPILER_HAS_ATOMIC
+    #if (defined(__GNUC__) && !VXWORKS) || defined(__clang__)
+        #define ME_COMPILER_HAS_ATOMIC 1
+    #else
+        #define ME_COMPILER_HAS_ATOMIC 0
+    #endif
+#endif
+
+#ifndef ME_COMPILER_HAS_ATOMIC64
+    #define ME_COMPILER_HAS_ATOMIC64 ME_COMPILER_HAS_ATOMIC
+#endif
+
+/*
+    ME_COMPILER_HAS_DOUBLE_BRACES - {{0}} aggregate initialization.
+    Supported by GCC and Clang but not VxWorks old toolchains or MSVC.
+ */
+#ifndef ME_COMPILER_HAS_DOUBLE_BRACES
+    #if (defined(__GNUC__) || defined(__clang__)) && !VXWORKS && !defined(_MSC_VER)
+        #define ME_COMPILER_HAS_DOUBLE_BRACES 1
+    #else
+        #define ME_COMPILER_HAS_DOUBLE_BRACES 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_DYN_LOAD - Dynamic library loading (dlopen/LoadLibrary).
+ */
+#ifndef ME_COMPILER_HAS_DYN_LOAD
+    #define ME_COMPILER_HAS_DYN_LOAD 1
+#endif
+
+/*
+    ME_COMPILER_HAS_LIB_EDIT - BSD libedit (editline) library.
+    Only available on macOS by default.
+ */
+#ifndef ME_COMPILER_HAS_LIB_EDIT
+    #if MACOSX
+        #define ME_COMPILER_HAS_LIB_EDIT 1
+    #else
+        #define ME_COMPILER_HAS_LIB_EDIT 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_LIB_RT - POSIX real-time library (librt).
+    Only Linux provides librt as a separate library.
+ */
+#ifndef ME_COMPILER_HAS_LIB_RT
+    #if LINUX
+        #define ME_COMPILER_HAS_LIB_RT 1
+    #else
+        #define ME_COMPILER_HAS_LIB_RT 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_MMU - Memory Management Unit present.
+    Override to 0 for no-MMU embedded targets.
+ */
+#ifndef ME_COMPILER_HAS_MMU
+    #define ME_COMPILER_HAS_MMU 1
+#endif
+
+/*
+    ME_COMPILER_HAS_MTUNE - GCC/Clang -mtune flag support.
+ */
+#ifndef ME_COMPILER_HAS_MTUNE
+    #if (defined(__GNUC__) || defined(__clang__)) && !VXWORKS && !defined(_MSC_VER)
+        #define ME_COMPILER_HAS_MTUNE 1
+    #else
+        #define ME_COMPILER_HAS_MTUNE 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_PAM - Pluggable Authentication Modules.
+    Only macOS ships PAM by default.
+ */
+#ifndef ME_COMPILER_HAS_PAM
+    #if MACOSX
+        #define ME_COMPILER_HAS_PAM 1
+    #else
+        #define ME_COMPILER_HAS_PAM 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_STACK_PROTECTOR - GCC/Clang -fstack-protector support.
+ */
+#ifndef ME_COMPILER_HAS_STACK_PROTECTOR
+    #if defined(__GNUC__) || defined(__clang__)
+        #define ME_COMPILER_HAS_STACK_PROTECTOR 1
+    #else
+        #define ME_COMPILER_HAS_STACK_PROTECTOR 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_HAS_SYNC - GCC __sync_* builtins (pre-C11 atomics).
+    Available on Linux and macOS with GCC/Clang.
+ */
+#ifndef ME_COMPILER_HAS_SYNC
+    #if (LINUX || MACOSX) && (defined(__GNUC__) || defined(__clang__))
+        #define ME_COMPILER_HAS_SYNC 1
+    #else
+        #define ME_COMPILER_HAS_SYNC 0
+    #endif
+#endif
+
+#ifndef ME_COMPILER_HAS_SYNC64
+    #define ME_COMPILER_HAS_SYNC64 ME_COMPILER_HAS_SYNC
+#endif
+
+#ifndef ME_COMPILER_HAS_SYNC_CAS
+    #define ME_COMPILER_HAS_SYNC_CAS ME_COMPILER_HAS_SYNC
+#endif
+
+/*
+    ME_COMPILER_HAS_UNNAMED_UNIONS - Unnamed union support.
+    Supported by all modern compilers.
+ */
+#ifndef ME_COMPILER_HAS_UNNAMED_UNIONS
+    #define ME_COMPILER_HAS_UNNAMED_UNIONS 1
+#endif
+
+/*
+    ME_COMPILER_NOEXECSTACK - Linker noexecstack support (GNU ld).
+ */
+#ifndef ME_COMPILER_NOEXECSTACK
+    #if LINUX
+        #define ME_COMPILER_NOEXECSTACK 1
+    #else
+        #define ME_COMPILER_NOEXECSTACK 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_WARN64TO32 - Clang -Wshorten-64-to-32 warning support.
+ */
+#ifndef ME_COMPILER_WARN64TO32
+    #if defined(__clang__)
+        #define ME_COMPILER_WARN64TO32 1
+    #else
+        #define ME_COMPILER_WARN64TO32 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_WARN_UNUSED - Unused result warning support.
+ */
+#ifndef ME_COMPILER_WARN_UNUSED
+    #if (LINUX || MACOSX) && (defined(__GNUC__) || defined(__clang__))
+        #define ME_COMPILER_WARN_UNUSED 1
+    #else
+        #define ME_COMPILER_WARN_UNUSED 0
+    #endif
+#endif
+
+/*
+    ME_COMPILER_FORTIFY - Compile with _FORTIFY_SOURCE buffer overflow protection.
+ */
+#ifndef ME_COMPILER_FORTIFY
+    #define ME_COMPILER_FORTIFY 1
+#endif
+
+/**
+    @section File Suffix Defaults
+
+    Default file extension suffixes based on the operating system.
+*/
+
+#ifndef ME_EXE
+    #if ME_WIN_LIKE
+        #define ME_EXE ".exe"
+    #elif VXWORKS
+        #define ME_EXE ".out"
+    #else
+        #define ME_EXE ""
+    #endif
+#endif
+
+#ifndef ME_SHLIB
+    #if MACOSX
+        #define ME_SHLIB ".dylib"
+    #elif ME_WIN_LIKE
+        #define ME_SHLIB ".lib"
+    #elif VXWORKS
+        #define ME_SHLIB ".out"
+    #else
+        #define ME_SHLIB ".so"
+    #endif
+#endif
+
+#ifndef ME_SHOBJ
+    #if MACOSX
+        #define ME_SHOBJ ".dylib"
+    #elif ME_WIN_LIKE
+        #define ME_SHOBJ ".dll"
+    #elif VXWORKS
+        #define ME_SHOBJ ".out"
+    #else
+        #define ME_SHOBJ ".so"
+    #endif
+#endif
+
+#ifndef ME_LIB
+    #if ME_WIN_LIKE
+        #define ME_LIB ".lib"
+    #else
+        #define ME_LIB ".a"
+    #endif
+#endif
+
+#ifndef ME_OBJ
+    #if ME_WIN_LIKE
+        #define ME_OBJ ".obj"
+    #else
+        #define ME_OBJ ".o"
+    #endif
 #endif
 
 /**
@@ -650,6 +1076,7 @@
     #include    <netinet/ip.h>
 #endif
 #if ME_UNIX_LIKE
+    #include    <stdbool.h>
     #include    <pthread.h>
     #include    <pwd.h>
 #if !CYGWIN
@@ -706,6 +1133,7 @@
     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
         #include    <sys/epoll.h>
     #endif
+    #include    <malloc.h>
     #include    <sys/prctl.h>
     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,22)
         #include    <sys/eventfd.h>
@@ -720,6 +1148,17 @@
         #include    <sys/sendfile.h>
     #endif
 #endif
+
+/*
+    Sendfile support for zero-copy file transfers
+ */
+#if LINUX && !__UCLIBC__
+    #define ME_HAS_SENDFILE 1
+#elif MACOSX || FREEBSD
+    #define ME_HAS_SENDFILE 1
+#else
+    #define ME_HAS_SENDFILE 0
+#endif
 #if MACOSX
     #include    <stdbool.h>
     #include    <mach-o/dyld.h>
@@ -727,6 +1166,7 @@
     #include    <mach/mach_init.h>
     #include    <mach/mach_time.h>
     #include    <mach/task.h>
+    #include    <malloc/malloc.h>
     #include    <libkern/OSAtomic.h>
     #include    <net/if_dl.h>
 #endif
@@ -772,6 +1212,7 @@
 
 #if FREERTOS
     #include <string.h>
+    #include <stdbool.h>
     #include "time.h"
 #if ESP32
     #include "freertos/FreeRTOS.h"
@@ -782,9 +1223,25 @@
     #include "event_groups.h"
     #include "task.h"
 #endif /* ESP32 */
+#if defined(__APPLE__) || defined(__linux__)
+    // Simulation of FreeRTOS on MacOS or Linux
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    #include <netdb.h>
+    #include <sys/types.h>
+    #include <netinet/tcp.h>
+    #include <sys/time.h>
+    #define closesocket(x)  close(x)
+#endif
 #endif
 
 #if ESP32
+    #include "sdkconfig.h"
     #include "esp_system.h"
     #include "esp_log.h"
     #include "esp_heap_caps.h"
@@ -821,7 +1278,7 @@
 */
 #ifndef HAS_BOOL
     #ifndef __cplusplus
-        #if !MACOSX && !FREERTOS
+        #if !ME_UNIX_LIKE && !FREERTOS
             #define HAS_BOOL 1
             /**
                 Boolean data type.
@@ -1061,6 +1518,10 @@ typedef int64 Offset;
     typedef int Socklen;
 #elif VXWORKS
     typedef int Socklen;
+#elif ESP32
+    typedef socklen_t Socklen;
+#elif FREERTOS
+    typedef uint Socklen;
 #else
     typedef socklen_t Socklen;
 #endif
@@ -1850,9 +2311,6 @@ typedef int64 Ticks;
 #endif
 
 #if FREERTOS
-#if !ESP32
-    typedef unsigned int socklen_t;
-#endif
 #ifndef SOMAXCONN
     #define SOMAXCONN 5
 #endif
