@@ -54,6 +54,7 @@ static cchar *envBlackList[] = {
     "GOPATH",
     "HOSTALIASES",
     "HTTP_AUTHORIZATION",
+    "HTTP_PROXY",
     "IFS",
     "JAVA_HOME",
     "JAVA_TOOL_OPTIONS",
@@ -90,6 +91,18 @@ static cchar *envBlackList[] = {
     NULL
 };
 
+static bool inBlackList(cchar *name)
+{
+    cchar   **bp;
+
+    for (bp = envBlackList; *bp; bp++) {
+        if (smatch(name, *bp)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /************************************ Forwards ********************************/
 
 static int checkCgi(CgiPid handle);
@@ -106,7 +119,6 @@ PUBLIC bool cgiHandler(Webs *wp)
     WebsKey *s;
     char    cgiPrefix[ME_GOAHEAD_LIMIT_FILENAME], *stdIn, *stdOut, cwd[ME_GOAHEAD_LIMIT_FILENAME];
     char    *cp, *cgiName, *cgiPath, **argp, **envp, **ep, *tok, *query, *dir, *extraPath, *exe, *vp;
-    cchar   **bp;
     CgiPid  pHandle;
     int     n, envpsize, argpsize, cid;
 
@@ -234,10 +246,8 @@ PUBLIC bool cgiHandler(Webs *wp)
         for (n = 0, s = hashFirst(wp->vars); s != NULL; s = hashNext(wp->vars, s)) {
             if (s->content.valid && s->content.type == string) {
                 vp = strim(s->name.value.string, " \t\r\n", WEBS_TRIM_BOTH);
-                for (bp = envBlackList; *bp; bp++) {
-                    if (smatch(vp, *bp)) {
-                        continue;
-                    }
+                if (inBlackList(vp)) {
+                    continue;
                 }
                 if (sstarts(vp,
                             "LD_") ||
