@@ -114,8 +114,10 @@ int main(int argc, char *argv[])
     if (!password && (password = getPassword()) == 0) {
         exit(1);
     }
-    encodedPassword = websMD5(sfmt("%s:%s:%s", username, realm, password));
-
+    if (slen(password) > WEBS_MAX_PASSWORD) {
+        error("Password exceeds maximum length of %d characters", WEBS_MAX_PASSWORD);
+        exit(3);
+    }
     if (smatch(cipher, "md5")) {
         encodedPassword = websMD5(sfmt("%s:%s:%s", username, realm, password));
     } else {
