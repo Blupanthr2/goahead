@@ -8,7 +8,189 @@
 #define _h_GOAHEAD 1
 
 
-/************************************ Overrides *******************************/
+/********************************* Configuration ******************************/
+
+/*
+    ME_COM defaults -- must be before includes so dependent headers see them.
+ */
+#ifndef ME_NAME
+    #define ME_NAME "goahead"
+#endif
+#ifndef ME_TITLE
+    #define ME_TITLE "Embedthis GoAhead"
+#endif
+#ifndef ME_COM_GOAHEAD
+    #define ME_COM_GOAHEAD 1
+#endif
+#ifndef ME_COM_OSDEP
+    #define ME_COM_OSDEP 1
+#endif
+#ifndef ME_COM_SSL
+    #define ME_COM_SSL 1
+#endif
+#ifndef ME_COM_OPENSSL
+    #define ME_COM_OPENSSL 1
+#endif
+#ifndef ME_COM_MBEDTLS
+    #define ME_COM_MBEDTLS 0
+#endif
+#ifndef ME_COM_MATRIXSSL
+    #define ME_COM_MATRIXSSL 0
+#endif
+#ifndef ME_COM_NANOSSL
+    #define ME_COM_NANOSSL 0
+#endif
+
+/*
+    Build settings -- ME_DEBUG and ME_VERSION are defined by the build system.
+ */
+#ifndef ME_DEBUG
+    #define ME_DEBUG 0
+#endif
+#ifndef ME_PROFILE
+    #define ME_PROFILE "default"
+#endif
+#ifndef ME_DEPRECATED_WARNINGS
+    #define ME_DEPRECATED_WARNINGS 0
+#endif
+#ifndef ME_ROM
+    #define ME_ROM 0
+#endif
+#ifndef ME_MAX_ARGC
+    #define ME_MAX_ARGC 32
+#endif
+#ifndef ME_MBEDTLS_COMPACT
+    #define ME_MBEDTLS_COMPACT 1
+#endif
+#ifndef ME_TUNE_SIZE
+    #define ME_TUNE_SIZE 1
+#endif
+
+/*
+    GoAhead feature flags
+ */
+#ifndef ME_GOAHEAD_ACCESS_LOG
+    #define ME_GOAHEAD_ACCESS_LOG 0
+#endif
+#ifndef ME_GOAHEAD_AUTH
+    #define ME_GOAHEAD_AUTH 1
+#endif
+#ifndef ME_GOAHEAD_AUTH_STORE
+    #define ME_GOAHEAD_AUTH_STORE "file"
+#endif
+#ifndef ME_GOAHEAD_AUTO_LOGIN
+    #define ME_GOAHEAD_AUTO_LOGIN 0
+#endif
+#ifndef ME_GOAHEAD_CGI
+    #define ME_GOAHEAD_CGI 1
+#endif
+#ifndef ME_GOAHEAD_CGI_VAR_PREFIX
+    #define ME_GOAHEAD_CGI_VAR_PREFIX "CGI_"
+#endif
+#ifndef ME_GOAHEAD_CLIENT_CACHE
+    #define ME_GOAHEAD_CLIENT_CACHE "css,gif,ico,jpg,js,png"
+#endif
+#ifndef ME_GOAHEAD_CLIENT_CACHE_LIFESPAN
+    #define ME_GOAHEAD_CLIENT_CACHE_LIFESPAN 86400
+#endif
+#ifndef ME_GOAHEAD_DIGEST
+    #define ME_GOAHEAD_DIGEST 1
+#endif
+#ifndef ME_GOAHEAD_DOCUMENTS
+    #define ME_GOAHEAD_DOCUMENTS "web"
+#endif
+#ifndef ME_GOAHEAD_JAVASCRIPT
+    #define ME_GOAHEAD_JAVASCRIPT 1
+#endif
+#ifndef ME_GOAHEAD_LEGACY
+    #define ME_GOAHEAD_LEGACY 0
+#endif
+#ifndef ME_GOAHEAD_LISTEN
+    #define ME_GOAHEAD_LISTEN "http://*:80,https://*:443"
+#endif
+#ifndef ME_GOAHEAD_LOGFILE
+    #define ME_GOAHEAD_LOGFILE "stderr:0"
+#endif
+#ifndef ME_GOAHEAD_NONCE_DURATION
+    #define ME_GOAHEAD_NONCE_DURATION 36000
+#endif
+#ifndef ME_GOAHEAD_PUT_DIR
+    #define ME_GOAHEAD_PUT_DIR "."
+#endif
+#ifndef ME_GOAHEAD_REALM
+    #define ME_GOAHEAD_REALM "example.com"
+#endif
+#ifndef ME_GOAHEAD_REPLACE_MALLOC
+    #define ME_GOAHEAD_REPLACE_MALLOC 0
+#endif
+#ifndef ME_GOAHEAD_STEALTH
+    #define ME_GOAHEAD_STEALTH 1
+#endif
+#ifndef ME_GOAHEAD_UPLOAD
+    #define ME_GOAHEAD_UPLOAD 1
+#endif
+#ifndef ME_GOAHEAD_UPLOAD_DIR
+    #define ME_GOAHEAD_UPLOAD_DIR "tmp"
+#endif
+#ifndef ME_GOAHEAD_XFRAME_HEADER
+    #define ME_GOAHEAD_XFRAME_HEADER "SAMEORIGIN"
+#endif
+
+/*
+    GoAhead numeric limits
+ */
+#ifndef ME_GOAHEAD_LIMIT_BUFFER
+    #define ME_GOAHEAD_LIMIT_BUFFER 1024
+#endif
+#ifndef ME_GOAHEAD_LIMIT_CGI_ARGS
+    #define ME_GOAHEAD_LIMIT_CGI_ARGS 4096
+#endif
+#ifndef ME_GOAHEAD_LIMIT_FILENAME
+    #define ME_GOAHEAD_LIMIT_FILENAME 256
+#endif
+#ifndef ME_GOAHEAD_LIMIT_FILES
+    #define ME_GOAHEAD_LIMIT_FILES 0
+#endif
+#ifndef ME_GOAHEAD_LIMIT_HEADER
+    #define ME_GOAHEAD_LIMIT_HEADER 2048
+#endif
+#ifndef ME_GOAHEAD_LIMIT_HEADERS
+    #define ME_GOAHEAD_LIMIT_HEADERS 4096
+#endif
+#ifndef ME_GOAHEAD_LIMIT_NUM_HEADERS
+    #define ME_GOAHEAD_LIMIT_NUM_HEADERS 64
+#endif
+#ifndef ME_GOAHEAD_LIMIT_PARSE_TIMEOUT
+    #define ME_GOAHEAD_LIMIT_PARSE_TIMEOUT 5
+#endif
+#ifndef ME_GOAHEAD_LIMIT_PASSWORD
+    #define ME_GOAHEAD_LIMIT_PASSWORD 32
+#endif
+#ifndef ME_GOAHEAD_LIMIT_POST
+    #define ME_GOAHEAD_LIMIT_POST 16384
+#endif
+#ifndef ME_GOAHEAD_LIMIT_PUT
+    #define ME_GOAHEAD_LIMIT_PUT 204800000
+#endif
+#ifndef ME_GOAHEAD_LIMIT_SESSION_COUNT
+    #define ME_GOAHEAD_LIMIT_SESSION_COUNT 512
+#endif
+#ifndef ME_GOAHEAD_LIMIT_SESSION_LIFE
+    #define ME_GOAHEAD_LIMIT_SESSION_LIFE 1800
+#endif
+#ifndef ME_GOAHEAD_LIMIT_STRING
+    #define ME_GOAHEAD_LIMIT_STRING 256
+#endif
+#ifndef ME_GOAHEAD_LIMIT_TIMEOUT
+    #define ME_GOAHEAD_LIMIT_TIMEOUT 60
+#endif
+#ifndef ME_GOAHEAD_LIMIT_UPLOAD
+    #define ME_GOAHEAD_LIMIT_UPLOAD 204800000
+#endif
+#ifndef ME_GOAHEAD_LIMIT_URI
+    #define ME_GOAHEAD_LIMIT_URI 2048
+#endif
+
 /*
     Override osdep defaults
  */
@@ -16,7 +198,6 @@
 
 /************************************ Includes ********************************/
 
-#include    "me.h"
 #include    "osdep.h"
 
 /************************************ Defaults ********************************/
@@ -100,7 +281,6 @@ typedef struct stat WebsStat;
 
 /************************************* Main ***********************************/
 
-#define ME_MAX_ARGC 32
 #if VXWORKS
     #define MAIN(name, _argc, _argv, _envp)  \
             static int innerMain(int argc, char **argv, char **envp); \
@@ -171,7 +351,8 @@ PUBLIC HINSTANCE websGetInst();
                                          */
 #define WEBS_SMALL_HASH   31            /**< Default size for small hash tables (should be prime number for good
                                            distribution) */
-#define WEBS_MAX_PASSWORD 32            /**< Default maximum length for user passwords in authentication systems */
+#define WEBS_MAX_PASSWORD ME_GOAHEAD_LIMIT_PASSWORD /**< Maximum plaintext password length accepted from clients */
+#define WEBS_MAX_PASSWORD_BUFFER ((WEBS_MAX_PASSWORD * 3) + 3) /**< Buffer size for "username:realm:password" passed to crypt primitives */
 
 /************************************* Error **********************************/
 #if ME_GOAHEAD_LOGGING
@@ -3017,6 +3198,17 @@ PUBLIC void websSetCookie(Webs *wp, cchar *name, cchar *value, cchar *path, ccha
 PUBLIC void websSetDebug(int on);
 
 /**
+    Override the runtime POST body size cap.
+    @description Replaces the compile-time ME_GOAHEAD_LIMIT_POST default with a
+        runtime-chosen value. Pass 0 (or a negative value) to restore the compile-time default.
+        Intended for test harnesses that need to accept larger bodies than the production
+        limit allows.
+    @param limit Maximum permitted POST body size in bytes.
+        @stability Prototype
+ */
+PUBLIC void websSetPostLimit(ssize limit);
+
+/**
     Set the web documents directory
     @description The web documents directory is used when resolving request URIs into filenames.
     @param dir Directory path to use
@@ -3587,6 +3779,9 @@ PUBLIC int websJstWrite(int jid, Webs *wp, int argc, char **argv);
 #ifndef ME_GOAHEAD_SSL_HANDSHAKES
     #define ME_GOAHEAD_SSL_HANDSHAKES    3
 #endif
+#ifndef ME_GOAHEAD_SSL_VERIFY_PEER
+    #define ME_GOAHEAD_SSL_VERIFY_PEER   0
+#endif
 
 
 /**
@@ -3601,6 +3796,24 @@ PUBLIC int sslOpen(void);
         @stability Stable
  */
 PUBLIC void sslClose(void);
+
+/**
+    Override the server SSL certificate path at runtime.
+    @description Must be called before sslOpen. When set, this path takes precedence over
+        the compile-time ME_GOAHEAD_SSL_CERTIFICATE default.
+    @param path Filesystem path to a PEM-encoded certificate, or NULL to clear an override.
+        @stability Prototype
+ */
+PUBLIC void websSetSslCertFile(cchar *path);
+
+/**
+    Override the server SSL private key path at runtime.
+    @description Must be called before sslOpen. When set, this path takes precedence over
+        the compile-time ME_GOAHEAD_SSL_KEY default.
+    @param path Filesystem path to a PEM-encoded private key, or NULL to clear an override.
+        @stability Prototype
+ */
+PUBLIC void websSetSslKeyFile(cchar *path);
 
 /**
     Free a ssl connection associated with a request
