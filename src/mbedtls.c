@@ -57,6 +57,14 @@ static MbedConfig cfg;
  */
 static int mbedLogLevel = ME_GOAHEAD_SSL_LOG_LEVEL;
 
+/*
+    Runtime-settable cert/key paths. Override the compile-time ME_GOAHEAD_SSL_CERTIFICATE /
+    ME_GOAHEAD_SSL_KEY macros when websSetSslCertFile / websSetSslKeyFile are called
+    before sslOpen(). Needed by test drivers that ship their own cert alongside the binary.
+ */
+static char *sslCertPath;
+static char *sslKeyPath;
+
 /************************************ Forwards ********************************/
 
 static int *getCipherSuite(char *ciphers, int *len);
@@ -103,22 +111,28 @@ PUBLIC int sslOpen()
     }
 
     /*
-        Set the server certificate and key files
+        Set the server certificate and key files. Prefer runtime-provided paths
+        (set via websSetSsl{Cert,Key}File) over the compile-time defaults.
      */
-    if (*ME_GOAHEAD_SSL_KEY) {
-        /*
-            Load a decrypted PEM format private key. The last arg is the private key.
-         */
-        if (parseKey(&cfg.pkey, ME_GOAHEAD_SSL_KEY) < 0) {
-            return -1;
+    {
+        char *keyPath = sslKeyPath ? sslKeyPath : (char*) ME_GOAHEAD_SSL_KEY;
+        char *certPath = sslCertPath ? sslCertPath : (char*) ME_GOAHEAD_SSL_CERTIFICATE;
+
+        if (keyPath && *keyPath) {
+            /*
+                Load a decrypted PEM format private key. The last arg is the private key.
+             */
+            if (parseKey(&cfg.pkey, keyPath) < 0) {
+                return -1;
+            }
         }
-    }
-    if (*ME_GOAHEAD_SSL_CERTIFICATE) {
-        /*
-            Load a PEM format certificate file
-         */
-        if (parseCert(&cfg.cert, ME_GOAHEAD_SSL_CERTIFICATE) < 0) {
-            return -1;
+        if (certPath && *certPath) {
+            /*
+                Load a PEM format certificate file
+             */
+            if (parseCert(&cfg.cert, certPath) < 0) {
+                return -1;
+            }
         }
     }
     if (*ME_GOAHEAD_SSL_AUTHORITY) {
@@ -228,6 +242,30 @@ PUBLIC void sslClose()
     mbedtls_entropy_free(&cfg.entropy);
     mbedtls_psa_crypto_free();
     wfree(cfg.ciphers);
+    wfree(sslCertPath);
+    sslCertPath = NULL;
+    wfree(sslKeyPath);
+    sslKeyPath = NULL;
+}
+
+
+/*
+    Runtime override for the server certificate path. Must be called before sslOpen().
+ */
+PUBLIC void websSetSslCertFile(cchar *path)
+{
+    wfree(sslCertPath);
+    sslCertPath = path ? sclone(path) : NULL;
+}
+
+
+/*
+    Runtime override for the server key path. Must be called before sslOpen().
+ */
+PUBLIC void websSetSslKeyFile(cchar *path)
+{
+    wfree(sslKeyPath);
+    sslKeyPath = path ? sclone(path) : NULL;
 }
 
 
