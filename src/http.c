@@ -369,6 +369,7 @@ static void initWebs(Webs *wp, int flags, int reuse)
 
     assert(wp);
 
+    memset(&rxbuf, 0, sizeof(rxbuf));
     if (reuse) {
         rxbuf = wp->rxbuf;
         wid = wp->wid;
@@ -1129,7 +1130,7 @@ static void parseHeaders(Webs *wp)
                     return;
                 }
             } else {
-                if (wp->rxLen > ME_GOAHEAD_LIMIT_POST) {
+                if (wp->rxLen > postLimit) {
                     websError(wp, HTTP_CODE_REQUEST_TOO_LARGE | WEBS_CLOSE, "Too big");
                     return;
                 }
@@ -1208,6 +1209,7 @@ static bool processContent(Webs *wp)
 {
     bool canProceed;
 
+    canProceed = 1;
     if (!wp->eof) {
         canProceed = filterChunkData(wp);
         if (!canProceed || wp->finalized) {
@@ -2134,6 +2136,7 @@ PUBLIC int websFlush(Webs *wp, bool block)
     ssize   nbytes, written;
     int     errCode, wasBlocking;
 
+    wasBlocking = 0;
     if (block) {
         wasBlocking = socketSetBlock(wp->sid, 1);
     }
@@ -3148,6 +3151,16 @@ PUBLIC int websGetDebug(void)
 PUBLIC void websSetDebug(int on)
 {
     websDebug = on;
+}
+
+
+/*
+    Override the runtime POST-body size cap. Defaults to ME_GOAHEAD_LIMIT_POST.
+    Used by the test harness to relax the production-tight default for upload stress tests.
+ */
+PUBLIC void websSetPostLimit(ssize limit)
+{
+    postLimit = limit > 0 ? limit : ME_GOAHEAD_LIMIT_POST;
 }
 
 
