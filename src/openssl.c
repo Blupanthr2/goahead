@@ -19,6 +19,12 @@
  */
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
+#if _MSC_VER
+/*
+    Suppress OpenSSL 3.0 deprecated-declaration warnings for legacy DH/RSA APIs used below.
+ */
+    #pragma warning(disable : 4996)
+#endif
 
 /* Clashes with WinCrypt.h */
 #undef OCSP_RESPONSE
@@ -178,7 +184,7 @@ static CipherMap cipherMap[] = {
     { 0xC030, "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "ECDHE-RSA-AES256-GCM-SHA384" },
     { 0xC031, "TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256", "ECDH-RSA-AES128-GCM-SHA256" },
     { 0xC032, "TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384", "ECDH-RSA-AES256-GCM-SHA384" },
-    { 0x0000, 0 },
+    { 0x0000, 0, 0 },
 };
 
 /*
@@ -205,6 +211,14 @@ typedef struct RandBuf {
  */
 static DH  *dhKey;
 static int maxHandshakes;
+
+/*
+    Runtime-settable cert/key paths. Override the compile-time ME_GOAHEAD_SSL_CERTIFICATE /
+    ME_GOAHEAD_SSL_KEY macros when websSetSslCertFile / websSetSslKeyFile are called
+    before sslOpen(). Needed by test drivers that ship their own cert alongside the binary.
+ */
+static char *sslCertPath;
+static char *sslKeyPath;
 
 /************************************ Forwards ********************************/
 
@@ -260,15 +274,21 @@ PUBLIC int sslOpen()
 #endif
 
     /*
-          Set the server certificate and key files
+          Set the server certificate and key files. Prefer runtime-provided paths
+          (set via websSetSsl{Cert,Key}File) over the compile-time defaults.
      */
-    if (*ME_GOAHEAD_SSL_KEY && sslSetKeyFile(ME_GOAHEAD_SSL_KEY) < 0) {
-        sslClose();
-        return -1;
-    }
-    if (*ME_GOAHEAD_SSL_CERTIFICATE && sslSetCertFile(ME_GOAHEAD_SSL_CERTIFICATE) < 0) {
-        sslClose();
-        return -1;
+    {
+        char *keyPath = sslKeyPath ? sslKeyPath : (char*) ME_GOAHEAD_SSL_KEY;
+        char *certPath = sslCertPath ? sslCertPath : (char*) ME_GOAHEAD_SSL_CERTIFICATE;
+
+        if (keyPath && *keyPath && sslSetKeyFile(keyPath) < 0) {
+            sslClose();
+            return -1;
+        }
+        if (certPath && *certPath && sslSetCertFile(certPath) < 0) {
+            sslClose();
+            return -1;
+        }
     }
 
     if (ME_GOAHEAD_SSL_VERIFY_PEER) {
@@ -497,6 +517,30 @@ PUBLIC void sslClose()
             dhKey = NULL;
         }
     }
+    wfree(sslCertPath);
+    sslCertPath = NULL;
+    wfree(sslKeyPath);
+    sslKeyPath = NULL;
+}
+
+
+/*
+    Runtime override for the server certificate path. Must be called before sslOpen().
+ */
+PUBLIC void websSetSslCertFile(cchar *path)
+{
+    wfree(sslCertPath);
+    sslCertPath = path ? sclone(path) : NULL;
+}
+
+
+/*
+    Runtime override for the server key path. Must be called before sslOpen().
+ */
+PUBLIC void websSetSslKeyFile(cchar *path)
+{
+    wfree(sslKeyPath);
+    sslKeyPath = path ? sclone(path) : NULL;
 }
 
 
@@ -775,19 +819,27 @@ static int verifyClientCertificate(int ok, X509_STORE_CTX *xContext)
     depth = X509_STORE_CTX_get_error_depth(xContext);
 
     ok = 1;
-    if (X509_NAME_oneline(X509_get_subject_name(cert), subject, sizeof(subject) - 1) < 0) {
+    if (X509_NAME_oneline(X509_get_subject_name(cert), subject, sizeof(subject) - 1) == NULL) {
         ok = 0;
     }
-    if (X509_NAME_oneline(X509_get_issuer_name(cert), issuer, sizeof(issuer) - 1) < 0) {
+    if (X509_NAME_oneline(X509_get_issuer_name(cert), issuer, sizeof(issuer) - 1) == NULL) {
         ok = 0;
     }
     if (X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName, peer, sizeof(peer) - 1) < 0) {
         ok = 0;
     }
-    if (ok && VERIFY_DEPTH < depth) {
-        if (error == 0) {
-            error = X509_V_ERR_CERT_CHAIN_TOO_LONG;
-        }
+    /*
+        Enforce the configured chain depth limit unconditionally. The underlying verifier may surface an
+        over-depth chain under a variety of error codes (for example, some LibreSSL releases report the
+        chain as X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY instead of X509_V_ERR_CERT_CHAIN_TOO_LONG).
+        Rejecting here based on X509_STORE_CTX_get_error_depth avoids relying on backend-specific error
+        mapping.
+     */
+    if (VERIFY_DEPTH < depth) {
+        logmsg(3, "Certificate chain too long (depth %d exceeds limit %d)", depth, VERIFY_DEPTH);
+        trace(4, "OpenSSL: Issuer: %s", issuer);
+        trace(4, "OpenSSL: Peer: %s", peer);
+        return 0;
     }
     switch (error) {
     case X509_V_OK:
@@ -798,6 +850,7 @@ static int verifyClientCertificate(int ok, X509_STORE_CTX *xContext)
             logmsg(3, "Self-signed certificate");
             ok = 0;
         }
+        break;
 
     case X509_V_ERR_CERT_UNTRUSTED:
     case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
