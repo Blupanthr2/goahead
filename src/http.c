@@ -39,6 +39,7 @@ static char     websHost[ME_MAX_IP];    /* Host name for the server */
 static char     websIpAddr[ME_MAX_IP];  /* IP address for the server */
 static char     *websHostUrl = NULL;    /* URL to access server */
 static char     *websIpAddrUrl = NULL;  /* URL to access server */
+static ssize    postLimit = ME_GOAHEAD_LIMIT_POST; /* Runtime-settable POST body cap */
 
 #define WEBS_ENCODE_HTML 0x1            /* Bit setting in charMatch[] */
 #define WEBS_ENCODE_URI  0x4            /* Encode URI characters */

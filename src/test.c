@@ -4,7 +4,9 @@
     Usage: goahead-test [options] [documents] [endpoints...]
         Options:
         --auth authFile        # User and role configuration
+        --cert certFile        # Server SSL certificate (PEM)
         --home directory       # Change to directory to run
+        --key keyFile          # Server SSL private key (PEM)
         --log logFile:level    # Log to file file at verbosity level
         --route routeFile      # Route configuration file
         --verbose              # Same as --log stderr:2
@@ -40,6 +42,7 @@ static int finished = 0;
 #endif
 #endif
 
+
 /********************************* Forwards ***********************************/
 
 static void initPlatform(void);
@@ -47,6 +50,9 @@ static void logHeader(void);
 static void usage(void);
 
 static bool testHandler(Webs *wp);
+#if ME_GOAHEAD_CGI
+static bool blacklistHandler(Webs *wp);
+#endif
 #if ME_GOAHEAD_JAVASCRIPT
 static int aspTest(int eid, Webs *wp, int argc, char **argv);
 static int bigTest(int eid, Webs *wp, int argc, char **argv);
@@ -76,6 +82,12 @@ MAIN(goahead, int argc, char **argv, char **envp)
     auth = "auth.txt";
     duration = 0;
 
+    /*
+        Relax the POST body cap to 16 MB for the test harness. The production default
+        (ME_GOAHEAD_LIMIT_POST = 16 KB) is tight for upload stress tests.
+     */
+    websSetPostLimit(16 * 1024 * 1024);
+
     for (argind = 1; argind < argc; argind++) {
         argp = argv[argind];
         if (*argp != '-') {
@@ -88,6 +100,16 @@ MAIN(goahead, int argc, char **argv, char **envp)
 #if ME_UNIX_LIKE && !MACOSX
         } else if (smatch(argp, "--background") || smatch(argp, "-b")) {
             websSetBackground(1);
+#endif
+
+#if ME_COM_SSL
+        } else if (smatch(argp, "--cert")) {
+            if (argind >= argc) usage();
+            websSetSslCertFile(argv[++argind]);
+
+        } else if (smatch(argp, "--key")) {
+            if (argind >= argc) usage();
+            websSetSslKeyFile(argv[++argind]);
 #endif
 
         } else if (smatch(argp, "--debugger") || smatch(argp, "-d") || smatch(argp, "-D")) {
@@ -166,6 +188,15 @@ MAIN(goahead, int argc, char **argv, char **envp)
 
     websDefineHandler("test", testHandler, 0, 0, 0);
     websAddRoute("/test", "test", 0);
+#if ME_GOAHEAD_CGI
+    /*
+        Route /blacklist-test through a handler that injects PATH/IFS/etc into
+        wp->vars and forwards to /cgi-bin/cgitest. Used by test/basic/cgi.tst.ts to
+        verify that the CGI env-build path filters blacklisted variables.
+     */
+    websDefineHandler("blacklist", blacklistHandler, 0, 0, 0);
+    websAddRoute("/blacklist-test", "blacklist", 0);
+#endif
 #if ME_GOAHEAD_LEGACY
     websUrlHandlerDefine("/legacy/", 0, 0, legacyTest, 0);
 #endif
@@ -223,7 +254,6 @@ static void logHeader(void)
     logmsg(2, "Host:               %s", websGetServer());
     logmsg(2, "Directory:          %s", home);
     logmsg(2, "Documents:          %s", websGetDocuments());
-    logmsg(2, "Configure:          %s", ME_CONFIG_CMD);
     logmsg(2, "---------------------------------------------");
 }
 
@@ -236,8 +266,14 @@ static void usage(void) {
 #if ME_UNIX_LIKE && !MACOSX
         "    --background           # Run as a Unix daemon\n"
 #endif
+#if ME_COM_SSL
+        "    --cert certFile        # Server SSL certificate (PEM)\n"
+#endif
         "    --debugger             # Run in debug mode\n"
         "    --home directory       # Change to directory to run\n"
+#if ME_COM_SSL
+        "    --key keyFile          # Server SSL private key (PEM)\n"
+#endif
         "    --log logFile:level    # Log to file file at verbosity level\n"
         "    --route routeFile      # Route configuration file\n"
         "    --verbose              # Same as --log stderr:2\n"
@@ -282,6 +318,26 @@ static bool testHandler(Webs *wp)
     }
     return 0;
 }
+
+
+#if ME_GOAHEAD_CGI
+/*
+    Inject blacklisted and non-blacklisted variables into wp->vars, then forward
+    to the CGI program. The CGI env-build path in src/cgi.c filters entries that
+    appear in envBlackList[]; the regression test asserts the filtered names do
+    not appear in the cgitest env dump while the sentinel does.
+ */
+static bool blacklistHandler(Webs *wp)
+{
+    websSetVar(wp, "PATH", "/evil:/bin");
+    websSetVar(wp, "IFS", "X");
+    websSetVar(wp, "BASH_ENV", "/tmp/evil");
+    websSetVar(wp, "LD_PRELOAD", "/tmp/evil.so");
+    websSetVar(wp, "BLACKLIST_SENTINEL", "ok");
+    websRewriteRequest(wp, "/cgi-bin/cgitest");
+    return 0;
+}
+#endif
 
 
 #if ME_GOAHEAD_JAVASCRIPT
